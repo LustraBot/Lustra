@@ -3,9 +3,10 @@ export default {
     description: 'setup stuff',
     execute: async (i) => {
         const embed = {
+            description: "Setup",
             color: 0xcdb4db
         };
 
-        await i.createMessage({ embeds: [embed] });
+        await i.createMessage({ embed: embed });
     },
 };
