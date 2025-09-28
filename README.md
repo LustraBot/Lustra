@@ -5,7 +5,7 @@
 
   ![Version](https://img.shields.io/badge/version-1.0.0-purple)
   ![Node.js](https://img.shields.io/badge/node-%3E%3D16.0.0-green)
-  ![License](https://img.shields.io/badge/license-ISC-blue)
+  ![License](https://img.shields.io/badge/license-Proprietary-red)
   ![Last Updated](https://img.shields.io/badge/last%20updated-2025-orange)
 </div>
 
@@ -99,7 +99,10 @@ The bot uses environment variables for configuration:
 
 ## License
 
-This project is licensed under the ISC License. See the LICENSE file for details.
+Copyright © 2025 Lustra.
+All rights reserved.
+This code is proprietary and may not be used, copied, modified,
+or distributed without written permission.
 
 ## Contributing
 
