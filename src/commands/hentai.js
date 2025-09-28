@@ -71,15 +71,19 @@ export default {
       if (type === "image") {
         const endpoint = "https://api.waifu.pics/nsfw/waifu";
         for (let i = 0; i < count; i++) {
-          const res = await fetch(endpoint);
-          if (!res.ok) continue;
-          const data = await res.json().catch(() => null);
-          if (data?.url) urls.push(data.url);
+          try {
+            const res = await fetch(endpoint);
+            if (!res.ok) continue;
+            const data = await res.json().catch(() => null);
+            if (data?.url) urls.push(data.url);
+          } catch {}
         }
       } else if (type === "gif") {
+        const apiLimit = count === 1 ? 2 : count;
         const res = await fetch(
-          `https://api.waifu.im/search?is_nsfw=true&gif=true&limit=${count}`,
+          `https://api.waifu.im/search?is_nsfw=true&gif=true&limit=${apiLimit}`,
         );
+
         if (res.ok) {
           const data = await res.json().catch(() => null);
           const images = Array.isArray(data?.images) ? data.images : [];
@@ -126,6 +130,7 @@ export default {
       }
 
       await interaction.createMessage({ embeds: chunks[0] });
+
       for (let i = 1; i < chunks.length; i++) {
         await new Promise((r) => setTimeout(r, 2000));
         await interaction.createFollowup({ embeds: chunks[i] });
