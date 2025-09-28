@@ -19,7 +19,7 @@ export default {
     if (!interaction.channel.nsfw)
       return interaction.createMessage("NSFW only.");
 
-    const userId = interaction.user.id;
+    const userId = interaction.member?.user?.id || interaction.user?.id;
     const now = Date.now();
     const cooldownAmount = 5000;
 
