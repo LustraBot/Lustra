@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="icon.jpg" alt="Lustra" width="120" height="120">
+  <img src="icon.jpg" alt="Lustra" width="240" height="240">
   <h1>Lustra</h1>
   <p>Efficient Discord bot for quick content access</p>
 
