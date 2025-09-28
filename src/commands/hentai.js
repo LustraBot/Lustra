@@ -12,14 +12,8 @@ export default {
       type: 3,
       required: true,
       choices: [
-        {
-          name: "image",
-          value: "image",
-        },
-        {
-          name: "gif",
-          value: "gif",
-        },
+        { name: "image", value: "image" },
+        { name: "gif", value: "gif" },
       ],
     },
     {
@@ -38,10 +32,7 @@ export default {
           "Please use this command in a Age-Restricted channel, thank you!",
         color: 0xcdb4db,
       };
-      return interaction.createMessage({
-        embeds: [embed],
-        flags: 64,
-      });
+      return interaction.createMessage({ embeds: [embed], flags: 64 });
     }
 
     const userId = interaction.member?.user?.id || interaction.user?.id;
@@ -50,111 +41,108 @@ export default {
 
     if (cooldowns.has(userId)) {
       const expirationTime = cooldowns.get(userId) + cooldownAmount;
-
       if (now < expirationTime) {
         const timeLeft = Math.ceil((expirationTime - now) / 1000);
-
         const embed = {
           title: "Cooldown Active",
           description: `Please wait ${timeLeft} second${timeLeft !== 1 ? "s" : ""} before using this command again.`,
           color: 0xcdb4db,
         };
-
-        return interaction.createMessage({
-          embeds: [embed],
-          flags: 64,
-        });
+        return interaction.createMessage({ embeds: [embed], flags: 64 });
       }
     }
-
     cooldowns.set(userId, now);
     setTimeout(() => cooldowns.delete(userId), cooldownAmount);
 
     const type = interaction.data.options?.find(
       (opt) => opt.name === "type",
     )?.value;
+    let count = interaction.data.options?.find(
+      (opt) => opt.name === "count",
+    )?.value;
 
-    const count =
-      interaction.data.options?.find((opt) => opt.name === "count")?.value || 1;
+    count = Number.isFinite(count) ? count : 1;
+    if (count < 1) count = 1;
+    if (count > 10) count = 10;
 
-    let apiUrl;
+    try {
+      let urls = [];
 
-    if (type === "image") {
-      apiUrl = "https://api.waifu.pics/nsfw/waifu";
-    } else if (type === "gif") {
-      apiUrl = `https://api.waifu.im/search?is_nsfw=true&gif=true&limit=${count}`;
-    }
-
-    if (type === "image") {
-      if (count === 1) {
-        const res = await fetch(apiUrl);
-        const data = await res.json();
-
-        const embed = {
-          image: {
-            url: data.url,
-          },
-          color: 0xcdb4db,
-        };
-
-        await interaction.createMessage({ embeds: [embed] });
-      } else {
-        const embeds = [];
-
+      if (type === "image") {
+        const endpoint = "https://api.waifu.pics/nsfw/waifu";
         for (let i = 0; i < count; i++) {
-          const res = await fetch(apiUrl);
-          const data = await res.json();
-
-          embeds.push({
-            image: {
-              url: data.url,
+          const res = await fetch(endpoint);
+          if (!res.ok) continue;
+          const data = await res.json().catch(() => null);
+          if (data?.url) urls.push(data.url);
+        }
+      } else if (type === "gif") {
+        const res = await fetch(
+          `https://api.waifu.im/search?is_nsfw=true&gif=true&limit=${count}`,
+        );
+        if (res.ok) {
+          const data = await res.json().catch(() => null);
+          const images = Array.isArray(data?.images) ? data.images : [];
+          urls = images
+            .map((img) => img?.url)
+            .filter(Boolean)
+            .slice(0, count);
+        }
+      } else {
+        return interaction.createMessage({
+          embeds: [
+            {
+              title: "Unknown Type",
+              description: "Please choose `image` or `gif`.",
+              color: 0xcdb4db,
             },
-            color: 0xcdb4db,
-          });
-        }
-
-        const messages = [];
-
-        for (let i = 0; i < embeds.length; i += 3) {
-          const chunk = embeds.slice(i, i + 3);
-          messages.push(chunk);
-        }
-
-        await interaction.createMessage({ embeds: messages[0] });
-
-        for (let i = 1; i < messages.length; i++) {
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-          await interaction.createFollowup({ embeds: messages[i] });
-        }
-      }
-    } else if (type === "gif") {
-      const res = await fetch(apiUrl);
-      const data = await res.json();
-
-      const embeds = [];
-
-      for (const image of data.images) {
-        embeds.push({
-          image: {
-            url: image.url,
-          },
-          color: 0xcdb4db,
+          ],
+          flags: 64,
         });
       }
 
-      const messages = [];
+      if (!urls.length) {
+        return interaction.createMessage({
+          embeds: [
+            {
+              title: "No Results",
+              description:
+                "I couldn’t fetch anything right now. Please try again in a moment.",
+              color: 0xcdb4db,
+            },
+          ],
+          flags: 64,
+        });
+      }
 
+      const embeds = urls.map((url) => ({
+        image: { url },
+        color: 0xcdb4db,
+      }));
+
+      const chunks = [];
       for (let i = 0; i < embeds.length; i += 3) {
-        const chunk = embeds.slice(i, i + 3);
-        messages.push(chunk);
+        chunks.push(embeds.slice(i, i + 3));
       }
 
-      await interaction.createMessage({ embeds: messages[0] });
-
-      for (let i = 1; i < messages.length; i++) {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        await interaction.createFollowup({ embeds: messages[i] });
+      await interaction.createMessage({ embeds: chunks[0] });
+      for (let i = 1; i < chunks.length; i++) {
+        await new Promise((r) => setTimeout(r, 2000));
+        await interaction.createFollowup({ embeds: chunks[i] });
       }
+    } catch (err) {
+      console.error("hentai cmd error:", err);
+      return interaction.createMessage({
+        embeds: [
+          {
+            title: "Unexpected Error",
+            description:
+              "Something went wrong while fetching content. Please try again.",
+            color: 0xcdb4db,
+          },
+        ],
+        flags: 64,
+      });
     }
   },
 };
