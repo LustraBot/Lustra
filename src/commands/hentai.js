@@ -9,53 +9,31 @@ export default {
     {
       name: "type",
       description: "what type of hentai",
-      type: 1,
+      type: 3,
       required: true,
-      options: [
+      choices: [
         {
           name: "image",
-          description: "hentai images",
-          type: 1,
-          options: [
-            {
-              name: "count",
-              description: "how many images",
-              type: 4,
-              required: false,
-              min_value: 1,
-              max_value: 10,
-            },
-          ],
+          value: "image",
         },
         {
           name: "gif",
-          description: "hentai gifs",
-          type: 1,
-          options: [
-            {
-              name: "count",
-              description: "how many gifs",
-              type: 4,
-              required: false,
-              min_value: 1,
-              max_value: 10,
-            },
-          ],
+          value: "gif",
         },
       ],
+    },
+    {
+      name: "count",
+      description: "how many images/gifs",
+      type: 4,
+      required: false,
+      min_value: 1,
+      max_value: 10,
     },
   ],
   execute: async (interaction) => {
     if (!interaction.channel.nsfw)
-      return interaction.createMessage({
-          embeds: [
-              {
-                  color: 0xff0000,
-                  description: "You must be in an NSFW channel to use this command"
-              }
-          ],
-          flags: 64
-      });
+      return interaction.createMessage("NSFW only.");
 
     const userId = interaction.member?.user?.id || interaction.user?.id;
     const now = Date.now();
@@ -65,7 +43,7 @@ export default {
       const expirationTime = cooldowns.get(userId) + cooldownAmount;
       if (now < expirationTime) {
         return interaction.createMessage({
-          content: "Try again in 5 seconds",
+          content: "Try again in 5 second",
           flags: 64,
         });
       }
@@ -74,15 +52,16 @@ export default {
     cooldowns.set(userId, now);
     setTimeout(() => cooldowns.delete(userId), cooldownAmount);
 
-    const subcommand = interaction.data.options[0].name;
+    const type = interaction.data.options?.find(
+      (opt) => opt.name === "type",
+    )?.value;
     const count =
-      interaction.data.options[0].options?.find((opt) => opt.name === "count")
-        ?.value || 1;
+      interaction.data.options?.find((opt) => opt.name === "count")?.value || 1;
 
     let apiUrl;
-    if (subcommand === "image") {
+    if (type === "image") {
       apiUrl = "https://api.waifu.pics/nsfw/waifu";
-    } else if (subcommand === "gif") {
+    } else if (type === "gif") {
       apiUrl = "https://api.waifu.pics/nsfw/blowjob";
     }
 
