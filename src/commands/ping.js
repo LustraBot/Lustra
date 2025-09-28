@@ -9,7 +9,7 @@ export default {
         const latency = Date.now() - start;
 
         let dbPing = await pingDB();
-        let dbPingText = dbPing ? 'OK' : 'Failed';
+        let dbPingText = dbPing !== null ? `\`\`${dbPing}\`\`ms` : 'Failed';
 
         const embed = {
             title: "<:pingpong:1421912856890310726> Pong!",

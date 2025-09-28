@@ -23,10 +23,11 @@ export async function pingDB() {
   try {
     const database = await connectDB();
     const admin = database.admin();
-    const result = await admin.ping();
-    return result.ok === 1;
+    const start = Date.now();
+    await admin.ping();
+    return Date.now() - start;
   } catch {
-    return false;
+    return null;
   }
 }
 
