@@ -62,27 +62,53 @@ export default {
     if (type === "image") {
       apiUrl = "https://api.waifu.pics/nsfw/waifu";
     } else if (type === "gif") {
-      apiUrl = "https://api.waifu.pics/nsfw/blowjob";
+      apiUrl = `https://api.waifu.im/search?is_nsfw=true&gif=true&limit=${count}`;
     }
 
-    if (count === 1) {
-      const res = await fetch(apiUrl);
-      const data = await res.json();
-      let embed = {
-        image: {
-          url: data.url,
-        },
-        color: 0xcdb4db,
-      };
-      await interaction.createMessage({ embeds: [embed] });
-    } else {
-      let embeds = [];
-      for (let i = 0; i < count; i++) {
+    if (type === "image") {
+      if (count === 1) {
         const res = await fetch(apiUrl);
         const data = await res.json();
-        embeds.push({
+        let embed = {
           image: {
             url: data.url,
+          },
+          color: 0xcdb4db,
+        };
+        await interaction.createMessage({ embeds: [embed] });
+      } else {
+        let embeds = [];
+        for (let i = 0; i < count; i++) {
+          const res = await fetch(apiUrl);
+          const data = await res.json();
+          embeds.push({
+            image: {
+              url: data.url,
+            },
+            color: 0xcdb4db,
+          });
+        }
+
+        let messages = [];
+        for (let i = 0; i < embeds.length; i += 3) {
+          const chunk = embeds.slice(i, i + 3);
+          messages.push(chunk);
+        }
+
+        await interaction.createMessage({ embeds: messages[0] });
+        for (let i = 1; i < messages.length; i++) {
+          await interaction.createFollowup({ embeds: messages[i] });
+        }
+      }
+    } else if (type === "gif") {
+      const res = await fetch(apiUrl);
+      const data = await res.json();
+
+      let embeds = [];
+      for (const image of data.images) {
+        embeds.push({
+          image: {
+            url: image.url,
           },
           color: 0xcdb4db,
         });
