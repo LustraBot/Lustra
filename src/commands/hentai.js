@@ -17,7 +17,7 @@ export default {
   ],
   execute: async (interaction) => {
     if (!interaction.channel.nsfw)
-      return interaction.createMessage("NSFW only.");
+      return interaction.createMessage("NSFW channels only.");
 
     const userId = interaction.member.user.userId;
     const now = Date.now();
