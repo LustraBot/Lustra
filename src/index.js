@@ -3,9 +3,14 @@ import fs from 'fs';
 import console from 'consola';
 import * as dotenv from 'dotenv';
 import fetch from 'node-fetch';
-import './db.js';
+import { connectDB } from './db.js';
 
 dotenv.config();
+
+connectDB().catch(err => {
+  console.error('[DB] MongoDB connection failed:', err);
+  process.exit(1);
+});
 
 const client = new Eris(`${process.env.DISCORD_TOKEN}`, {
     intents: [
