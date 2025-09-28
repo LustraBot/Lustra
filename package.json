@@ -19,5 +19,9 @@
   "bugs": {
     "url": "https://github.com/brutiv/Lustra/issues"
   },
-  "homepage": "https://github.com/brutiv/Lustra#readme"
+  "homepage": "https://github.com/brutiv/Lustra#readme",
+  "dependencies": {
+    "consola": "^3.4.2",
+    "hmtai": "^3.2.3"
+  }
 }
