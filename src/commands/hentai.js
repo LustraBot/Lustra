@@ -8,7 +8,7 @@ export default {
   options: [
     {
       name: "count",
-      description: "how many images",
+      description: "How many images you want",
       type: 4,
       required: false,
       min_value: 1,
@@ -19,7 +19,7 @@ export default {
     if (!interaction.channel.nsfw)
       return interaction.createMessage("NSFW only.");
 
-    const userId = interaction.member?.user?.id || interaction.user?.id;
+    const userId = interaction.member.user.userId;
     const now = Date.now();
     const cooldownAmount = 5000;
 
