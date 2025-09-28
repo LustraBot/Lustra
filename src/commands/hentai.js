@@ -96,7 +96,7 @@ export default {
 
       await interaction.createMessage({ embeds: messages[0] });
       for (let i = 1; i < messages.length; i++) {
-        await interaction.followupMessage({ embeds: messages[i] });
+        await interaction.createFollowup({ embeds: messages[i] });
       }
     }
   },
