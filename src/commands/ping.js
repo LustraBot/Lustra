@@ -1,3 +1,5 @@
+import { pingDB } from '../db.js';
+
 export default {
     name: "ping",
     description: "Ping!",
@@ -5,6 +7,9 @@ export default {
         const start = Date.now();
         await i.defer();
         const latency = Date.now() - start;
+
+        let dbPing = await pingDB();
+        let dbPingText = dbPing ? 'OK' : 'Failed';
 
         const embed = {
             title: "<:pingpong:1421912856890310726> Pong!",
@@ -18,6 +23,11 @@ export default {
                 {
                     name: "<:tools:1421910719255023626> API Latency",
                     value: `\`\`${Math.round(i._client.shards.get(0).latency)}\`\`ms`,
+                    inline: true,
+                },
+                {
+                    name: "<:cogwheelsilhouette:1421912845922078900> Database Ping",
+                    value: dbPingText,
                     inline: true,
                 }
             ],

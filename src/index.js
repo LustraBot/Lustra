@@ -3,6 +3,7 @@ import fs from 'fs';
 import console from 'consola';
 import * as dotenv from 'dotenv';
 import fetch from 'node-fetch';
+import './db.js';
 
 dotenv.config();
 
