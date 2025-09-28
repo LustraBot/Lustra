@@ -4,10 +4,7 @@ import console from 'consola';
 import * as dotenv from 'dotenv';
 import fetch from 'node-fetch';
 
-
 dotenv.config();
-
-
 
 const client = new Eris(`${process.env.DISCORD_TOKEN}`, {
     intents: [
@@ -18,8 +15,6 @@ const client = new Eris(`${process.env.DISCORD_TOKEN}`, {
         Constants.Intents.directMessageReactions,
     ],
 });
-
-
 
 client.on('ready', async () => {
     console.info(`Logged in as ${client.user.username}#${client.user.discriminator}`);
@@ -42,11 +37,14 @@ client.on('ready', async () => {
 
     if (process.env.TOPGGTOKEN) {
         updateTopGGStats();
-        setInterval(updateTopGGStats, 1800000); // Update every 30 minutes
+        setInterval(updateTopGGStats, 1800000);
     }
+
+    setTimeout(() => {
+        updateStatus();
+        setInterval(updateStatus, 8000);
+    }, 2000);
 });
-
-
 
 client.on('interactionCreate', async (i) => {
     if (i instanceof CommandInteraction) {
@@ -61,8 +59,6 @@ client.on('interactionCreate', async (i) => {
         }
     }
 });
-
-
 
 client.on('guildCreate', () => {
     if (process.env.TOPGGTOKEN) {
@@ -97,6 +93,29 @@ async function updateTopGGStats() {
         }
     } catch (error) {
         console.error('Error posting to Top.gg:', error.message);
+    }
+}
+
+let currentStatus = 0;
+
+function updateStatus() {
+    try {
+        const serverCount = client.guilds.size;
+        const memberCount = client.guilds.reduce((total, guild) => total + guild.memberCount, 0);
+
+        const statuses = [
+            `/help | ${serverCount} servers`,
+            `/about | ${memberCount} members`
+        ];
+
+        client.editStatus('online', {
+            name: statuses[currentStatus],
+            type: 0
+        });
+
+        currentStatus = (currentStatus + 1) % statuses.length;
+    } catch (error) {
+        console.error('Error updating status:', error.message);
     }
 }
 
