@@ -32,8 +32,17 @@ export default {
     },
   ],
   execute: async (interaction) => {
-    if (!interaction.channel.nsfw)
-      return interaction.createMessage("NSFW only.");
+    if (!interaction.channel?.nsfw) {
+      const embed = {
+        description:
+          "Please use this command in a Age-Restricted channel, thank you!",
+        color: 0xcdb4db,
+      };
+      return interaction.createMessage({
+        embeds: [embed],
+        flags: 64,
+      });
+    }
 
     const userId = interaction.member?.user?.id || interaction.user?.id;
     const now = Date.now();
@@ -41,13 +50,16 @@ export default {
 
     if (cooldowns.has(userId)) {
       const expirationTime = cooldowns.get(userId) + cooldownAmount;
+
       if (now < expirationTime) {
         const timeLeft = Math.ceil((expirationTime - now) / 1000);
+
         const embed = {
           title: "Cooldown Active",
-          description: `Please wait ${timeLeft} second${timeLeft !== 1 ? 's' : ''} before using this command again.`,
+          description: `Please wait ${timeLeft} second${timeLeft !== 1 ? "s" : ""} before using this command again.`,
           color: 0xcdb4db,
         };
+
         return interaction.createMessage({
           embeds: [embed],
           flags: 64,
@@ -61,10 +73,12 @@ export default {
     const type = interaction.data.options?.find(
       (opt) => opt.name === "type",
     )?.value;
+
     const count =
       interaction.data.options?.find((opt) => opt.name === "count")?.value || 1;
 
     let apiUrl;
+
     if (type === "image") {
       apiUrl = "https://api.waifu.pics/nsfw/waifu";
     } else if (type === "gif") {
@@ -75,18 +89,22 @@ export default {
       if (count === 1) {
         const res = await fetch(apiUrl);
         const data = await res.json();
-        let embed = {
+
+        const embed = {
           image: {
             url: data.url,
           },
           color: 0xcdb4db,
         };
+
         await interaction.createMessage({ embeds: [embed] });
       } else {
-        let embeds = [];
+        const embeds = [];
+
         for (let i = 0; i < count; i++) {
           const res = await fetch(apiUrl);
           const data = await res.json();
+
           embeds.push({
             image: {
               url: data.url,
@@ -95,13 +113,15 @@ export default {
           });
         }
 
-        let messages = [];
+        const messages = [];
+
         for (let i = 0; i < embeds.length; i += 3) {
           const chunk = embeds.slice(i, i + 3);
           messages.push(chunk);
         }
 
         await interaction.createMessage({ embeds: messages[0] });
+
         for (let i = 1; i < messages.length; i++) {
           await new Promise((resolve) => setTimeout(resolve, 2000));
           await interaction.createFollowup({ embeds: messages[i] });
@@ -111,7 +131,8 @@ export default {
       const res = await fetch(apiUrl);
       const data = await res.json();
 
-      let embeds = [];
+      const embeds = [];
+
       for (const image of data.images) {
         embeds.push({
           image: {
@@ -121,13 +142,15 @@ export default {
         });
       }
 
-      let messages = [];
+      const messages = [];
+
       for (let i = 0; i < embeds.length; i += 3) {
         const chunk = embeds.slice(i, i + 3);
         messages.push(chunk);
       }
 
       await interaction.createMessage({ embeds: messages[0] });
+
       for (let i = 1; i < messages.length; i++) {
         await new Promise((resolve) => setTimeout(resolve, 2000));
         await interaction.createFollowup({ embeds: messages[i] });
