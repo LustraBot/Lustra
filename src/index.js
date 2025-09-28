@@ -13,6 +13,7 @@ const client = new Eris(`${process.env.DISCORD_TOKEN}`, {
         Constants.Intents.guildMessageReactions,
         Constants.Intents.directMessages,
         Constants.Intents.directMessageReactions,
+        Constants.Intents.guildMembers,
     ],
 });
 
@@ -44,6 +45,88 @@ client.on('ready', async () => {
         updateStatus();
         setInterval(updateStatus, 8000);
     }, 2000);
+});
+
+async function sendWelcomeMessage(member) {
+    const welcomeChannelId = "1421959685921050755";
+    const verifyChannelId = "1421932309946568715";
+    const updatesChannelId = "1421934523230195743";
+    const githubChannelId = "1421934554846855401";
+    
+    const welcomeChannel = member.guild.channels.get(welcomeChannelId);
+    if (!welcomeChannel) {
+        console.warn(`Welcome channel ${welcomeChannelId} not found in guild ${member.guild.id}`);
+        return;
+    }
+
+    const embed = {
+        title: "<:welcome:1421961081798266911> Welcome to Lustra!",
+        color: 0xcdb4db,
+        description: "We're happy to have you here! Lustra is a Discord bot designed for quick access to NSFW content with efficient delivery.",
+        fields: [
+            {
+                name: "<:tar_gzfile:1421961111187624007> Next Steps",
+                value: "Please press the \"Verify Here\" button below to verify",
+                inline: false,
+            },
+            {
+                name: "<:lightning:1421961099871391776> Quick Features",
+                value: "• Fast image & gif delivery\n• Smart rate limiting\n• NSFW channel detection\n• Multiple content sources",
+                inline: false,
+            },
+            {
+                name: "<:link:1421961090442461214> Need Help?",
+                value: "Use `/help` to see all available commands",
+                inline: false,
+            },
+        ],
+        footer: {
+            text: "Enjoy your stay! • Made with ❤️",
+        },
+        timestamp: new Date().toISOString(),
+    };
+
+    const components = [
+        {
+            type: 1,
+            components: [
+                {
+                    type: 2,
+                    style: 5,
+                    label: "Verify Here",
+                    url: `https://discord.com/channels/${member.guild.id}/${verifyChannelId}`
+                },
+                {
+                    type: 2,
+                    style: 5,
+                    label: "Updates",
+                    url: `https://discord.com/channels/${member.guild.id}/${updatesChannelId}`
+                },
+                {
+                    type: 2,
+                    style: 5,
+                    label: "GitHub",
+                    url: `https://discord.com/channels/${member.guild.id}/${githubChannelId}`
+                }
+            ]
+        }
+    ];
+
+    try {
+        await welcomeChannel.createMessage({
+            content: `<@${member.id}>`,
+            embeds: [embed],
+            components: components
+        });
+        console.info(`Sent welcome message to ${member.username}#${member.discriminator}`);
+    } catch (error) {
+        console.error(`Failed to send welcome message:`, error);
+    }
+}
+
+client.on('guildMemberAdd', async (guild, member) => {
+    console.info(`New member joined: ${member.username}#${member.discriminator}`);
+    await sendWelcomeMessage(member);
 });
 
 client.on('interactionCreate', async (i) => {
