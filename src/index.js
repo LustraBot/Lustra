@@ -65,7 +65,7 @@ async function sendWelcomeMessage(member) {
         description: "We're happy to have you here! Lustra is a Discord bot designed for quick access to NSFW content with efficient delivery.",
         fields: [
             {
-                name: "<:tar_gzfile:1421961111187624007> Next Steps",
+                name: "<:bowandarrow:1421961111187624007> Next Steps",
                 value: "Please press the \"Verify Here\" button below to verify",
                 inline: false,
             },
