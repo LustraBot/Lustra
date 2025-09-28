@@ -50,22 +50,27 @@ export default {
       };
       await interaction.createMessage({ embeds: [embed] });
     } else {
-      let images = [];
+      let embeds = [];
       for (let i = 0; i < count; i++) {
         const res = await fetch("https://api.waifu.pics/nsfw/waifu");
         const data = await res.json();
-        images.push(data.url);
+        embeds.push({
+          image: {
+            url: data.url,
+          },
+          color: 0xcdb4db,
+        });
       }
 
       let messages = [];
-      for (let i = 0; i < images.length; i += 3) {
-        const chunk = images.slice(i, i + 3);
-        messages.push(chunk.join("\n"));
+      for (let i = 0; i < embeds.length; i += 3) {
+        const chunk = embeds.slice(i, i + 3);
+        messages.push(chunk);
       }
 
-      await interaction.createMessage(messages[0]);
+      await interaction.createMessage({ embeds: messages[0] });
       for (let i = 1; i < messages.length; i++) {
-        await interaction.followupMessage(messages[i]);
+        await interaction.followupMessage({ embeds: messages[i] });
       }
     }
   },
