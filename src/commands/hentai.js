@@ -7,19 +7,49 @@ export default {
   description: "Hentai!",
   options: [
     {
-      name: "count",
-      description: "How many images you want",
-      type: 4,
-      required: false,
-      min_value: 1,
-      max_value: 10,
+      name: "type",
+      description: "what type of hentai",
+      type: 1,
+      required: true,
+      options: [
+        {
+          name: "image",
+          description: "hentai images",
+          type: 1,
+          options: [
+            {
+              name: "count",
+              description: "how many images",
+              type: 4,
+              required: false,
+              min_value: 1,
+              max_value: 10,
+            },
+          ],
+        },
+        {
+          name: "gif",
+          description: "hentai gifs",
+          type: 1,
+          options: [
+            {
+              name: "count",
+              description: "how many gifs",
+              type: 4,
+              required: false,
+              min_value: 1,
+              max_value: 10,
+            },
+          ],
+        },
+      ],
     },
   ],
   execute: async (interaction) => {
     if (!interaction.channel.nsfw)
       return interaction.createMessage("NSFW channels only.");
 
-    const userId = interaction.member.user.userId;
+    const userId = interaction.member?.user?.id || interaction.user?.id;
     const now = Date.now();
     const cooldownAmount = 5000;
 
@@ -36,11 +66,20 @@ export default {
     cooldowns.set(userId, now);
     setTimeout(() => cooldowns.delete(userId), cooldownAmount);
 
+    const subcommand = interaction.data.options[0].name;
     const count =
-      interaction.data.options?.find((opt) => opt.name === "count")?.value || 1;
+      interaction.data.options[0].options?.find((opt) => opt.name === "count")
+        ?.value || 1;
+
+    let apiUrl;
+    if (subcommand === "image") {
+      apiUrl = "https://api.waifu.pics/nsfw/waifu";
+    } else if (subcommand === "gif") {
+      apiUrl = "https://api.waifu.pics/nsfw/blowjob";
+    }
 
     if (count === 1) {
-      const res = await fetch("https://api.waifu.pics/nsfw/waifu");
+      const res = await fetch(apiUrl);
       const data = await res.json();
       let embed = {
         image: {
@@ -52,7 +91,7 @@ export default {
     } else {
       let embeds = [];
       for (let i = 0; i < count; i++) {
-        const res = await fetch("https://api.waifu.pics/nsfw/waifu");
+        const res = await fetch(apiUrl);
         const data = await res.json();
         embeds.push({
           image: {
