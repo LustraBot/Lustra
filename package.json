@@ -22,6 +22,9 @@
   "homepage": "https://github.com/brutiv/Lustra#readme",
   "dependencies": {
     "consola": "^3.4.2",
-    "hmtai": "^3.2.3"
+    "dotenv": "^17.2.2",
+    "eris": "^0.18.0",
+    "hmtai": "^3.2.3",
+    "node-fetch": "^3.3.2"
   }
 }

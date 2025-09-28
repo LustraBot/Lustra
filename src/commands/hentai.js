@@ -97,6 +97,7 @@ export default {
 
         await interaction.createMessage({ embeds: messages[0] });
         for (let i = 1; i < messages.length; i++) {
+          await new Promise((resolve) => setTimeout(resolve, 2000));
           await interaction.createFollowup({ embeds: messages[i] });
         }
       }
@@ -122,6 +123,7 @@ export default {
 
       await interaction.createMessage({ embeds: messages[0] });
       for (let i = 1; i < messages.length; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
         await interaction.createFollowup({ embeds: messages[i] });
       }
     }
