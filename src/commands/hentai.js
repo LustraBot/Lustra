@@ -42,8 +42,14 @@ export default {
     if (cooldowns.has(userId)) {
       const expirationTime = cooldowns.get(userId) + cooldownAmount;
       if (now < expirationTime) {
+        const timeLeft = Math.ceil((expirationTime - now) / 1000);
+        const embed = {
+          title: "Cooldown Active",
+          description: `Please wait ${timeLeft} second${timeLeft !== 1 ? 's' : ''} before using this command again.`,
+          color: 0xcdb4db,
+        };
         return interaction.createMessage({
-          content: "Try again in 5 second",
+          embeds: [embed],
           flags: 64,
         });
       }
