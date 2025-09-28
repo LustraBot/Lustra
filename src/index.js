@@ -2,6 +2,7 @@ import Eris, { Constants, Collection, CommandInteraction } from 'eris';
 import fs from 'fs';
 import console from 'consola';
 import * as dotenv from 'dotenv';
+import fetch from 'node-fetch';
 
 
 dotenv.config();
@@ -38,6 +39,11 @@ client.on('ready', async () => {
     }
 
     console.info('Commands loaded!');
+
+    if (process.env.TOPGGTOKEN) {
+        updateTopGGStats();
+        setInterval(updateTopGGStats, 1800000); // Update every 30 minutes
+    }
 });
 
 
@@ -57,5 +63,41 @@ client.on('interactionCreate', async (i) => {
 });
 
 
+
+client.on('guildCreate', () => {
+    if (process.env.TOPGGTOKEN) {
+        updateTopGGStats();
+    }
+});
+
+client.on('guildDelete', () => {
+    if (process.env.TOPGGTOKEN) {
+        updateTopGGStats();
+    }
+});
+
+async function updateTopGGStats() {
+    try {
+        const serverCount = client.guilds.size;
+        const response = await fetch(`https://top.gg/api/bots/${client.user.id}/stats`, {
+            method: 'POST',
+            headers: {
+                'Authorization': process.env.TOPGGTOKEN,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                server_count: serverCount,
+            }),
+        });
+
+        if (response.ok) {
+            console.info(`Posted stats to Top.gg: ${serverCount} servers`);
+        } else {
+            console.error('Failed to post stats to Top.gg:', response.status);
+        }
+    } catch (error) {
+        console.error('Error posting to Top.gg:', error.message);
+    }
+}
 
 client.connect();
