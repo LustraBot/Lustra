@@ -17,7 +17,15 @@ export default {
   ],
   execute: async (interaction) => {
     if (!interaction.channel.nsfw)
-      return interaction.createMessage("NSFW channels only.");
+      return interaction.createMessage({
+          embeds: [
+              {
+                  color: 0xff0000,
+                  description: "You must be in an NSFW channel to use this command"
+              }
+          ],
+          flags: 64
+      });
 
     const userId = interaction.member.user.userId;
     const now = Date.now();
