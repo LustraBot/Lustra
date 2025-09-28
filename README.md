@@ -2,11 +2,11 @@
   <img src="icon.jpg" alt="Lustra" width="120" height="120">
   <h1>Lustra</h1>
   <p>Efficient Discord bot for quick content access</p>
-  
+
   ![Version](https://img.shields.io/badge/version-1.0.0-purple)
   ![Node.js](https://img.shields.io/badge/node-%3E%3D16.0.0-green)
   ![License](https://img.shields.io/badge/license-ISC-blue)
-  ![Last Updated](https://img.shields.io/badge/last%20updated-2024-orange)
+  ![Last Updated](https://img.shields.io/badge/last%20updated-2025-orange)
 </div>
 
 ---
@@ -19,7 +19,7 @@ Lustra is a Discord bot designed to streamline content delivery with efficient r
 
 - Fast image and GIF delivery from multiple sources
 - Intelligent rate limiting to prevent spam
-- NSFW channel detection and enforcement  
+- NSFW channel detection and enforcement
 - Clean embed-based responses
 - Multiple content batch processing
 - Real-time latency monitoring
