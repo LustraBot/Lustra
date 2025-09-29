@@ -70,21 +70,17 @@ export default {
       (opt) => opt.name === "type",
     )?.value;
 
-    const category = interaction.data.options?.find(
+    let category = interaction.data.options?.find(
       (opt) => opt.name === "category",
     )?.value;
 
     if (type === "gif" && !category) {
-      return interaction.createMessage({
-        embeds: [
-          {
-            title: "Choose a Category!",
-            description: "Please specify a gif category using the category option.",
-            color: 0xcdb4db,
-          },
-        ],
-        flags: 64,
-      });
+      const gifCategories = [
+        "hug", "kiss", "pat", "cuddle", "poke", "wave", "wink", "smile",
+        "blush", "smug", "sleep", "dance", "cry", "laugh", "bite", "nom",
+        "happy", "baka", "angry", "run", "slap"
+      ];
+      category = gifCategories[Math.floor(Math.random() * gifCategories.length)];
     }
     try {
       let urls = [];
