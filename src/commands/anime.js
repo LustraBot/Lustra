@@ -89,6 +89,8 @@ export default {
     try {
       let urls = [];
 
+      let animeName = null;
+
       if (type === "image") {
         const endpoints = [
           "https://api.waifu.pics/sfw/waifu",
@@ -125,7 +127,7 @@ export default {
             .filter(Boolean)
             .slice(0, 1);
 
-          const animeName = results[0]?.anime_name;
+          animeName = results[0]?.anime_name;
         }
       } else {
         return interaction.createMessage({
