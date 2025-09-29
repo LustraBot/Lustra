@@ -2,6 +2,36 @@ import fetch from "node-fetch";
 
 const cooldowns = new Map();
 
+export async function getHentaiUrls(type, count = 1) {
+  let urls = [];
+  if (type === "image") {
+    const endpoint = "https://api.waifu.pics/nsfw/waifu";
+    for (let i = 0; i < count; i++) {
+      try {
+        const res = await fetch(endpoint);
+        if (!res.ok) continue;
+        const data = await res.json().catch(() => null);
+        if (data?.url) urls.push(data.url);
+      } catch {}
+    }
+  } else if (type === "gif") {
+    const apiLimit = count === 1 ? 2 : count;
+    const res = await fetch(
+      `https://api.waifu.im/search?is_nsfw=true&gif=true&limit=${apiLimit}`,
+    );
+
+    if (res.ok) {
+      const data = await res.json().catch(() => null);
+      const images = Array.isArray(data?.images) ? data.images : [];
+      urls = images
+        .map((img) => img?.url)
+        .filter(Boolean)
+        .slice(0, count);
+    }
+  }
+  return urls;
+}
+
 export default {
   name: "hentai",
   description: "Hentai!",
@@ -75,30 +105,8 @@ export default {
     try {
       let urls = [];
 
-      if (type === "image") {
-        const endpoint = "https://api.waifu.pics/nsfw/waifu";
-        for (let i = 0; i < count; i++) {
-          try {
-            const res = await fetch(endpoint);
-            if (!res.ok) continue;
-            const data = await res.json().catch(() => null);
-            if (data?.url) urls.push(data.url);
-          } catch {}
-        }
-      } else if (type === "gif") {
-        const apiLimit = count === 1 ? 2 : count;
-        const res = await fetch(
-          `https://api.waifu.im/search?is_nsfw=true&gif=true&limit=${apiLimit}`,
-        );
-
-        if (res.ok) {
-          const data = await res.json().catch(() => null);
-          const images = Array.isArray(data?.images) ? data.images : [];
-          urls = images
-            .map((img) => img?.url)
-            .filter(Boolean)
-            .slice(0, count);
-        }
+      if (type === "image" || type === "gif") {
+        urls = await getHentaiUrls(type, count);
       } else {
         return interaction.createMessage({
           embeds: [

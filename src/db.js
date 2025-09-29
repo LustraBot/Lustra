@@ -31,4 +31,45 @@ export async function pingDB() {
   }
 }
 
+export async function getAutoHentaiCollection() {
+  const database = await connectDB();
+  const col = database.collection('auto_hentai');
+  await col.createIndex({ guildId: 1 }, { unique: true }).catch(() => {});
+  return col;
+}
+
+export async function upsertAutoHentaiConfig({ guildId, channelId, mode = 'both', intervalMs = 30 * 60 * 1000, enabled = true }) {
+  const col = await getAutoHentaiCollection();
+  const now = new Date();
+  await col.updateOne(
+    { guildId },
+    {
+      $set: { guildId, channelId, mode, intervalMs, enabled, updatedAt: now },
+      $setOnInsert: { createdAt: now, lastSentAt: null },
+    },
+    { upsert: true }
+  );
+  return col.findOne({ guildId });
+}
+
+export async function getAllAutoHentaiConfigs() {
+  const col = await getAutoHentaiCollection();
+  return col.find({ enabled: true }).toArray();
+}
+
+export async function getAutoHentaiConfig(guildId) {
+  const col = await getAutoHentaiCollection();
+  return col.findOne({ guildId });
+}
+
+export async function disableAutoHentai(guildId) {
+  const col = await getAutoHentaiCollection();
+  await col.updateOne({ guildId }, { $set: { enabled: false, updatedAt: new Date() } });
+}
+
+export async function updateAutoHentaiLastSent(guildId) {
+  const col = await getAutoHentaiCollection();
+  await col.updateOne({ guildId }, { $set: { lastSentAt: new Date(), updatedAt: new Date() } });
+}
+
 export default connectDB;

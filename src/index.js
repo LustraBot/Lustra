@@ -4,6 +4,7 @@ import console from 'consola';
 import * as dotenv from 'dotenv';
 import fetch from 'node-fetch';
 import { connectDB } from './db.js';
+import { initAutoHentai } from './automation/hentaiAuto.js';
 import { handleComponentInteraction } from './handlers/components.js';
 
 dotenv.config();
@@ -42,6 +43,8 @@ client.on('ready', async () => {
     }
 
     console.info('Commands loaded!');
+
+    await initAutoHentai(client);
 
     if (process.env.TOPGGTOKEN) {
         updateTopGGStats();
