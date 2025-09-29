@@ -45,28 +45,31 @@ export default {
     });
 
     setTimeout(() => {
-      const disabled = [
-        {
-          type: 1,
-          components: [
-            {
-              type: 3,
-              custom_id: "setup_menu",
-              placeholder: "Select an option",
-              options: [
-                {
-                  label: "Automation",
-                  value: "automation",
-                  description: "Configure automation features",
-                  emoji: { id: "1421912845922078900", name: "cogwheelsilhouette" }
-                }
-              ],
-              disabled: true
-            }
-          ]
-        }
-      ];
-      msg.edit({ components: disabled }).catch(() => {});
+      try {
+        if (!msg || typeof msg.edit !== 'function') return;
+        const disabled = [
+          {
+            type: 1,
+            components: [
+              {
+                type: 3,
+                custom_id: "setup_menu",
+                placeholder: "Select an option",
+                options: [
+                  {
+                    label: "Automation",
+                    value: "automation",
+                    description: "Configure automation features",
+                    emoji: { id: "1421912845922078900", name: "cogwheelsilhouette" }
+                  }
+                ],
+                disabled: true
+              }
+            ]
+          }
+        ];
+        msg.edit({ components: disabled }).catch(() => {});
+      } catch {}
     }, 60000);
   },
 };
