@@ -31,8 +31,8 @@ export default {
             inline: false,
           },
           {
-            name: "<:cogwheelsilhouette:1421912845922078900> `/setup`",
-            value: "Bot configuration and server setup options\n• Customize bot behavior\n• Manage server-specific settings",
+            name: "<:hug:1422270833455403115> `/anime`",
+            value: "Access SFW anime content with variety\n• `type:` Choose between `image` or `gif`\n• `category:` Pick specific gif type (optional)\n• Works in any channel\n• Shows anime names as titles",
             inline: false,
           },
           {
