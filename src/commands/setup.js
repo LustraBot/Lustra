@@ -44,45 +44,29 @@ export default {
       components
     });
 
-    const collector = i.channel.createComponentCollector({ time: 60000 });
-
-    collector.on('collect', async (component) => {
-      if (component.data.custom_id !== 'setup_menu') return;
-      if (component.user.id !== i.user.id) return;
-      
-      const value = component.data.values[0];
-      
-      if (value === 'automation') {
-        const automationEmbed = {
-          color: 0xcdb4db,
-          title: "Automation",
-          description: "test"
-        };
-
-        const automationComponents = [
-          {
-            type: 1,
-            components: [
-              {
-                type: 2,
-                style: 2,
-                label: "placeholder",
-                custom_id: "placeholder"
-              }
-            ]
-          }
-        ];
-
-        await i.createMessage({
-          embeds: [automationEmbed],
-          components: automationComponents,
-          flags: 64
-        });
-      }
-    });
-
-    collector.on('end', () => {
-      msg.edit({ components: [] }).catch(() => {});
-    });
+    setTimeout(() => {
+      const disabled = [
+        {
+          type: 1,
+          components: [
+            {
+              type: 3,
+              custom_id: "setup_menu",
+              placeholder: "Select an option",
+              options: [
+                {
+                  label: "Automation",
+                  value: "automation",
+                  description: "Configure automation features",
+                  emoji: { id: "1421912845922078900", name: "cogwheelsilhouette" }
+                }
+              ],
+              disabled: true
+            }
+          ]
+        }
+      ];
+      msg.edit({ components: disabled }).catch(() => {});
+    }, 60000);
   },
 };

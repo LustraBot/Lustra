@@ -4,6 +4,7 @@ import console from 'consola';
 import * as dotenv from 'dotenv';
 import fetch from 'node-fetch';
 import { connectDB } from './db.js';
+import { handleComponentInteraction } from './handlers/components.js';
 
 dotenv.config();
 
@@ -141,12 +142,13 @@ client.on('interactionCreate', async (i) => {
 
         try {
             await client.commands.get(i.data.name).execute(i);
-        }
-        catch (error) {
+        } catch (error) {
             console.error(error);
             await i.createMessage('There was an error while executing this command!');
         }
+        return;
     }
+    await handleComponentInteraction(i);
 });
 
 client.on('guildCreate', () => {
