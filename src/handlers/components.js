@@ -213,6 +213,6 @@ export async function handleComponentInteraction(i) {
       }
     }
   } catch (error) {
-    console.error('Error handling component interaction:', error);
+    console.error('cant handle component interaction:', error);
   }
 }
