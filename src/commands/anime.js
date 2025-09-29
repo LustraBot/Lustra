@@ -16,6 +16,35 @@ export default {
         { name: "gif", value: "gif" },
       ],
     },
+    {
+      name: "category",
+      description: "specific gif category",
+      type: 3,
+      required: false,
+      choices: [
+        { name: "hug", value: "hug" },
+        { name: "kiss", value: "kiss" },
+        { name: "pat", value: "pat" },
+        { name: "cuddle", value: "cuddle" },
+        { name: "poke", value: "poke" },
+        { name: "wave", value: "wave" },
+        { name: "wink", value: "wink" },
+        { name: "smile", value: "smile" },
+        { name: "blush", value: "blush" },
+        { name: "smug", value: "smug" },
+        { name: "sleep", value: "sleep" },
+        { name: "dance", value: "dance" },
+        { name: "cry", value: "cry" },
+        { name: "laugh", value: "laugh" },
+        { name: "bite", value: "bite" },
+        { name: "nom", value: "nom" },
+        { name: "happy", value: "happy" },
+        { name: "baka", value: "baka" },
+        { name: "angry", value: "angry" },
+        { name: "run", value: "run" },
+        { name: "slap", value: "slap" },
+      ],
+    },
   ],
   execute: async (interaction) => {
     const userId = interaction.member?.user?.id || interaction.user?.id;
@@ -41,6 +70,22 @@ export default {
       (opt) => opt.name === "type",
     )?.value;
 
+    const category = interaction.data.options?.find(
+      (opt) => opt.name === "category",
+    )?.value;
+
+    if (type === "gif" && !category) {
+      return interaction.createMessage({
+        embeds: [
+          {
+            title: "Choose a Category!",
+            description: "Please specify a gif category using the category option.",
+            color: 0xcdb4db,
+          },
+        ],
+        flags: 64,
+      });
+    }
     try {
       let urls = [];
 
@@ -69,16 +114,18 @@ export default {
         }
       } else if (type === "gif") {
         const res = await fetch(
-          "https://api.waifu.im/search?is_nsfw=false&gif=true&limit=2",
+          `https://nekos.best/api/v2/${category}`,
         );
 
         if (res.ok) {
           const data = await res.json().catch(() => null);
-          const images = Array.isArray(data?.images) ? data.images : [];
-          urls = images
-            .map((img) => img?.url)
+          const results = Array.isArray(data?.results) ? data.results : [];
+          urls = results
+            .map((result) => result?.url)
             .filter(Boolean)
             .slice(0, 1);
+
+          const animeName = results[0]?.anime_name;
         }
       } else {
         return interaction.createMessage({
@@ -109,7 +156,7 @@ export default {
 
       const embeds = urls.map((url, index) => {
         const isGif = type === "gif";
-        const title = isGif ? "Nyah!" : "Kawaii!";
+        const title = isGif ? (animeName || "Nyah!") : "Kawaii!";
         return {
           title: title,
           image: { url },
