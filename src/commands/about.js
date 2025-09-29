@@ -40,13 +40,19 @@ export default {
             type: 2,
             style: 5,
             label: "GitHub",
-            url: "https://github.com/brutiv/Lustra"
+            url: "https://github.com/LustraBot/Lustra"
           },
           {
             type: 2,
             style: 5,
             label: "Support Server",
             url: "https://discord.gg/W7MttaRT"
+          },
+          {
+            type: 2,
+            style: 5,
+            label: "Vote on Top.gg",
+            url: "https://top.gg/bot/1421884850507354123/vote"
           }
         ]
       }
