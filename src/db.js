@@ -8,15 +8,30 @@ const dbName = process.env.MONGODB_DBNAME;
 
 let client;
 let db;
+let connectPromise;
 
 export async function connectDB() {
-  if (!client) {
-    client = new MongoClient(uri);
-    await client.connect();
-    db = client.db(dbName);
-    console.log('[DB] Connected to MongoDB');
+  if (db) return db;
+  if (!connectPromise) {
+    const c = new MongoClient(uri);
+    connectPromise = c
+      .connect()
+      .then(() => {
+        client = c;
+        db = client.db(dbName);
+        console.log('[DB] Connected to MongoDB');
+        try {
+          const col = db.collection('auto_hentai');
+          col.createIndex({ guildId: 1 }, { unique: true }).catch(() => {});
+        } catch {}
+        return db;
+      })
+      .catch((err) => {
+        connectPromise = null;
+        throw err;
+      });
   }
-  return db;
+  return connectPromise;
 }
 
 export async function pingDB() {
