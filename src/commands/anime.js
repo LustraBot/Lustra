@@ -69,7 +69,7 @@ export default {
         }
       } else if (type === "gif") {
         const res = await fetch(
-          "https://api.waifu.im/search?is_nsfw=false&gif=true&limit=5",
+          "https://api.waifu.im/search?is_nsfw=false&gif=true&limit=1",
         );
 
         if (res.ok) {
@@ -78,7 +78,7 @@ export default {
           urls = images
             .map((img) => img?.url)
             .filter(Boolean)
-            .slice(0, 3);
+            .slice(0, 1);
         }
       } else {
         return interaction.createMessage({
@@ -107,37 +107,17 @@ export default {
         });
       }
 
-      const embeds = urls.map((url) => ({
-        image: { url },
-        color: 0xcdb4db,
-      }));
+      const embeds = urls.map((url, index) => {
+        const isGif = type === "gif";
+        const title = isGif ? "Nyah!" : "Kawaii!";
+        return {
+          title: title,
+          image: { url },
+          color: 0xcdb4db,
+        };
+      });
 
-      const BATCH_SIZE = 5;
-      const chunks = [];
-      for (let i = 0; i < embeds.length; i += BATCH_SIZE) {
-        chunks.push(embeds.slice(i, i + BATCH_SIZE));
-      }
-
-      if (chunks.length === 0) {
-        return interaction.createMessage({
-          embeds: [
-            {
-              title: "No Results",
-              description:
-                "I couldn't fetch anything right now. Please try again in a moment.",
-              color: 0xcdb4db,
-            },
-          ],
-          flags: 64,
-        });
-      }
-
-      await interaction.createMessage({ embeds: chunks[0] });
-
-      for (let i = 1; i < chunks.length; i++) {
-        await new Promise((r) => setTimeout(r, 1500));
-        await interaction.createFollowup({ embeds: chunks[i] });
-      }
+      await interaction.createMessage({ embeds: [embeds[0]] });
     } catch (err) {
       console.error("anime cmd error:", err);
       return interaction.createMessage({
