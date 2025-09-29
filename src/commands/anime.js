@@ -69,7 +69,7 @@ export default {
         }
       } else if (type === "gif") {
         const res = await fetch(
-          "https://api.waifu.im/search?is_nsfw=false&gif=true&limit=1",
+          "https://api.waifu.im/search?is_nsfw=false&gif=true&limit=2",
         );
 
         if (res.ok) {
