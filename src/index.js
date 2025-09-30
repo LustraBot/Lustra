@@ -147,17 +147,19 @@ client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
     
     const OWNER_ID = '1362053982444454119';
-    const prefix = 'lureload ';
-    
-    if (!message.content.startsWith(prefix)) return;
+    const reloadPrefix = 'lureload ';
+    const loadPrefix = 'luload ';
+
+    if (!message.content.startsWith(reloadPrefix) && !message.content.startsWith(loadPrefix)) return;
     if (message.author.id !== OWNER_ID) {
         return message.channel.createMessage('Only the bot owner can use this command.');
     }
     
-    const args = message.content.slice(prefix.length).trim();
+    const isReload = message.content.startsWith(reloadPrefix);
+    const args = message.content.slice((isReload ? reloadPrefix : loadPrefix).length).trim();
     
     if (!args) {
-        return message.channel.createMessage('Usage: `lureload <command>` or `lureload handlers.<handler>`');
+        return message.channel.createMessage('Usage: `lureload <command>` or `lureload handlers.<handler>`\\nUsage: `luload <command>` or `luload handlers.<handler>`');
     }
     
     try {
@@ -167,8 +169,9 @@ client.on('messageCreate', async (message) => {
             
             await import(handlerPath);
             
-            await message.channel.createMessage(`Successfully reloaded handler: \`${handlerName}\``);
-            console.success(`Reloaded handler: ${handlerName}`);
+            const action = isReload ? 'reloaded' : 'loaded';
+            await message.channel.createMessage(`Successfully ${action} handler: \`${handlerName}\``);
+            console.success(`${action.charAt(0).toUpperCase() + action.slice(1)} handler: ${handlerName}`);
         } else {
             const commandName = args.toLowerCase();
             const commandPath = `./commands/${commandName}.js?update=${Date.now()}`;
@@ -176,12 +179,13 @@ client.on('messageCreate', async (message) => {
             const newCommand = (await import(commandPath)).default;
             client.commands.set(newCommand.name, newCommand);
             
-            await message.channel.createMessage(`Successfully reloaded command: \`${commandName}\``);
-            console.success(`Reloaded command: ${commandName}`);
+            const action = isReload ? 'reloaded' : 'loaded';
+            await message.channel.createMessage(`Successfully ${action} command: \`${commandName}\``);
+            console.success(`${action.charAt(0).toUpperCase() + action.slice(1)} command: ${commandName}`);
         }
     } catch (error) {
-        console.error('Reload error:', error);
-        await message.channel.createMessage(`Failed to reload: \`${error.message}\``);
+        console.error(`${isReload ? 'Reload' : 'Load'} error:`, error);
+        await message.channel.createMessage(`Failed to ${isReload ? 'reload' : 'load'}: \`${error.message}\``);
     }
 });
 
