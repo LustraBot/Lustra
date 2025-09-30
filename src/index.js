@@ -6,6 +6,7 @@ import fetch from 'node-fetch';
 import { connectDB } from './db.js';
 import { initAutoHentai } from './automation/hentaiAuto.js';
 import { handleComponentInteraction } from './handlers/components.js';
+import { sendErrorToChannel } from './handlers/errors.js';
 
 dotenv.config();
 
@@ -147,6 +148,14 @@ client.on('interactionCreate', async (i) => {
             await client.commands.get(i.data.name).execute(i);
         } catch (error) {
             console.error(error);
+            await sendErrorToChannel(client, error, {
+                description: 'An error occurred while executing a command.',
+                source: 'Command Execution',
+                command: i.data.name,
+                guildId: i.guildID,
+                channelId: i.channel?.id,
+                userId: i.member?.user?.id || i.user?.id,
+            });
             await i.createMessage('There was an error while executing this command!');
         }
         return;
@@ -212,5 +221,33 @@ function updateStatus() {
         console.error('Error updating status:', error.message);
     }
 }
+
+client.on('error', async (error) => {
+    console.error('[Client] Error event:', error);
+    await sendErrorToChannel(client, error, {
+        description: 'A client error occurred.',
+        source: 'Discord Client',
+    });
+});
+
+process.on('uncaughtException', async (error) => {
+    console.error('[Process] Uncaught Exception:', error);
+    if (client.ready) {
+        await sendErrorToChannel(client, error, {
+            description: 'An uncaught exception occurred.',
+            source: 'Process Exception',
+        });
+    }
+});
+
+process.on('unhandledRejection', async (reason, promise) => {
+    console.error('[Process] Unhandled Rejection at:', promise, 'reason:', reason);
+    if (client.ready) {
+        await sendErrorToChannel(client, reason, {
+            description: 'An unhandled promise rejection occurred.',
+            source: 'Promise Rejection',
+        });
+    }
+});
 
 client.connect();

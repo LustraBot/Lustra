@@ -1,5 +1,6 @@
 import { getAllAutoHentaiConfigs, updateAutoHentaiLastSent, getAutoHentaiConfig } from '../db.js';
 import { getHentaiUrls } from '../commands/hentai.js';
+import { sendErrorToChannel } from '../handlers/errors.js';
 
 const timers = new Map();
 
@@ -38,6 +39,13 @@ async function sendOne(client, cfg) {
     await updateAutoHentaiLastSent(cfg.guildId);
   } catch (err) {
     console.error('[AutoHentai] sendOne error:', err?.message || err);
+    stopTimer(cfg.guildId);
+    await sendErrorToChannel(client, err, {
+      description: 'An error occurred while sending auto hentai. The timer has been stopped.',
+      source: 'Auto Hentai',
+      guildId: cfg.guildId,
+      channelId: cfg.channelId,
+    });
   }
 }
 
@@ -66,6 +74,10 @@ export async function initAutoHentai(client) {
     console.info(`[AutoHentai] initialized for ${all.length} guild(s)`);
   } catch (e) {
     console.error('[AutoHentai] init error:', e?.message || e);
+    await sendErrorToChannel(client, e, {
+      description: 'Failed to initialize auto hentai system.',
+      source: 'Auto Hentai Init',
+    });
   }
 }
 
@@ -79,6 +91,11 @@ export async function rescheduleAutoHentai(client, guildId) {
     startTimer(client, cfg);
   } catch (e) {
     console.error('[AutoHentai] reschedule error:', e?.message || e);
+    await sendErrorToChannel(client, e, {
+      description: 'Failed to reschedule auto hentai.',
+      source: 'Auto Hentai Reschedule',
+      guildId,
+    });
   }
 }
 
