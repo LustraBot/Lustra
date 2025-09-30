@@ -4,7 +4,7 @@ const cooldowns = new Map();
 
 export default {
   name: 'fact',
-  description: 'Get a random fun fact',
+  description: 'get a pretty pointless fact',
   execute: async (interaction) => {
     const userId = interaction.member?.user?.id || interaction.user?.id;
     const now = Date.now();
