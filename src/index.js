@@ -10,6 +10,8 @@ import { sendErrorToChannel } from './handlers/errors.js';
 
 dotenv.config();
 
+export const botStartTime = Date.now();
+
 connectDB().catch(err => {
   console.error('[DB] MongoDB connection failed:', err);
   process.exit(1);

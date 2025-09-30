@@ -82,7 +82,6 @@ export async function sendErrorToChannel(client, error, context = {}) {
     await errorChannel.createMessage({
       embeds: [
         {
-          title: 'Bot Error',
           description: context.description || 'An error occurred in the bot.',
           fields: fields,
           color: 0xcdb4db,

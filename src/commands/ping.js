@@ -1,4 +1,5 @@
 import { pingDB } from '../db.js';
+import { botStartTime } from '../index.js';
 
 const cooldowns = new Map();
 
@@ -35,7 +36,7 @@ export default {
     let dbPing = await pingDB();
     let dbPingText = dbPing !== null ? `\`\`${dbPing}\`\`ms` : 'Failed';
 
-    const startTimestamp = Math.floor((Date.now() - i._client.uptime) / 1000);
+    const startTimestamp = Math.floor(botStartTime / 1000);
 
     const embed = {
       title: "Bot Information",
