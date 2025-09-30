@@ -25,6 +25,7 @@ const client = new Eris(`${process.env.DISCORD_TOKEN}`, {
         Constants.Intents.directMessages,
         Constants.Intents.directMessageReactions,
         Constants.Intents.guildMembers,
+        Constants.Intents.messageContent,
     ],
 });
 
@@ -140,6 +141,48 @@ async function sendWelcomeMessage(member) {
 client.on('guildMemberAdd', async (guild, member) => {
     console.info(`New member joined: ${member.username}#${member.discriminator}`);
     await sendWelcomeMessage(member);
+});
+
+client.on('messageCreate', async (message) => {
+    if (message.author.bot) return;
+    
+    const OWNER_ID = '1362053982444454119';
+    const prefix = 'lureload ';
+    
+    if (!message.content.startsWith(prefix)) return;
+    if (message.author.id !== OWNER_ID) {
+        return message.channel.createMessage('Only the bot owner can use this command.');
+    }
+    
+    const args = message.content.slice(prefix.length).trim();
+    
+    if (!args) {
+        return message.channel.createMessage('Usage: `lureload <command>` or `lureload handlers.<handler>`');
+    }
+    
+    try {
+        if (args.startsWith('handlers.')) {
+            const handlerName = args.replace('handlers.', '');
+            const handlerPath = `./handlers/${handlerName}.js?update=${Date.now()}`;
+            
+            await import(handlerPath);
+            
+            await message.channel.createMessage(`Successfully reloaded handler: \`${handlerName}\``);
+            console.success(`Reloaded handler: ${handlerName}`);
+        } else {
+            const commandName = args.toLowerCase();
+            const commandPath = `./commands/${commandName}.js?update=${Date.now()}`;
+            
+            const newCommand = (await import(commandPath)).default;
+            client.commands.set(newCommand.name, newCommand);
+            
+            await message.channel.createMessage(`Successfully reloaded command: \`${commandName}\``);
+            console.success(`Reloaded command: ${commandName}`);
+        }
+    } catch (error) {
+        console.error('Reload error:', error);
+        await message.channel.createMessage(`Failed to reload: \`${error.message}\``);
+    }
 });
 
 client.on('interactionCreate', async (i) => {

@@ -17,37 +17,64 @@ export default {
     if (showCommands) {
       const embed = {
         title: "<:note:1421910167775084646> Command List",
-        description: "Complete guide to all available commands",
+        description: "**Complete guide to all available commands**",
         color: 0xcdb4db,
         fields: [
           {
             name: "<:pingpong:1421912856890310726> `/ping`",
-            value: "Test bot responsiveness and check connection quality\n• Shows command execution time\n• Displays Discord API latency",
-            inline: false,
-          },
-          {
-            name: "<:plus18movie:1421912864876400770> `/hentai`",
-            value: "Access NSFW content quickly and efficiently\n• `type:` Choose between `image` or `gif`\n• `count:` Request 1-10 items at once\n• Requires NSFW channel\n• Built-in cooldown protection",
-            inline: false,
-          },
-          {
-            name: "<:hug:1422270833455403115> `/anime`",
-            value: "Access SFW anime content with variety\n• `type:` Choose between `image` or `gif`\n• `category:` Pick specific gif type (optional)\n• Works in any channel\n• Shows anime names as titles",
-            inline: false,
+            value: 
+              "**Test bot responsiveness**\n" +
+              "```\n" +
+              "Shows command execution time\n" +
+              "Displays Discord API latency\n" +
+              "```",
+            inline: true,
           },
           {
             name: "<:questionsign:1421912836103475250> `/help`",
-            value: "Access this help system\n• `commands: true` - Show detailed command list\n• `commands: false` - Show general help info",
-            inline: false,
+            value: 
+              "**Access help system**\n" +
+              "```\n" +
+              "commands: true/false\n" +
+              "Toggle detailed view\n" +
+              "```",
+            inline: true,
           },
           {
             name: "<:info:1421910347564187799> `/about`",
-            value: "Learn about Lustra bot\n• Bot information and features\n• Developer links and support",
-            inline: false,
+            value: 
+              "**Learn about Lustra**\n" +
+              "```\n" +
+              "Bot information\n" +
+              "Developer links\n" +
+              "```",
+            inline: true,
+          },
+          {
+            name: "<:hug:1422270833455403115> `/anime`",
+            value: 
+              "**SFW anime content**\n" +
+              "```yaml\n" +
+              "type:     image | gif\n" +
+              "category: gif type\n" +
+              "```\n" +
+              "Works in any channel",
+            inline: true,
+          },
+          {
+            name: "<:plus18movie:1421912864876400770> `/hentai`",
+            value: 
+              "**NSFW content (18+)**\n" +
+              "```yaml\n" +
+              "type:  image | gif\n" +
+              "count: 1-10 items\n" +
+              "```\n" +
+              "Requires NSFW channel",
+            inline: true,
           },
         ],
         footer: {
-          text: "Use /about for more information about the bot"
+          text: "Tip: Use /help without options to see the welcome guide"
         }
       };
 
@@ -55,32 +82,49 @@ export default {
     } else {
       const embed = {
         title: "<:star2:1421912827018612776> Welcome to Lustra",
-        description: "Your efficient Discord bot for quick content access",
+        description: 
+          "**Fast, efficient content delivery for Discord**\n\n" +
+          "Quick access to anime content with smart caching and built-in rate limiting.",
         color: 0xcdb4db,
         fields: [
           {
             name: "<:note:1421910167775084646> Getting Started",
-            value: "• Use `/help commands:true` to see all available commands\n• Most features work in any channel\n• NSFW commands require NSFW channels",
+            value: 
+              "```\n" +
+              "/help commands:true  → View all commands\n" +
+              "/anime               → Get anime content\n" +
+              "/about               → Bot information\n" +
+              "```",
             inline: false,
           },
           {
             name: "<:tools:1421910719255023626> Key Features",
-            value: "• Fast content delivery with smart caching\n• Rate limiting protection\n• Multiple content sources\n• Clean, organized responses",
+            value: 
+              "<:star2:1421912827018612776> Fast content delivery with smart caching\n" +
+              "<:star2:1421912827018612776> Rate limiting and cooldown protection\n" +
+              "<:star2:1421912827018612776> Multiple content sources\n" +
+              "<:star2:1421912827018612776> Clean, organized responses",
             inline: false,
           },
           {
             name: "<:plus18movie:1421912864876400770> NSFW Guidelines",
-            value: "• Adult content only works in NSFW channels\n• Built-in cooldowns prevent spam\n• Multiple items delivered efficiently",
+            value: 
+              "<:note:1421910167775084646> Adult content requires NSFW channels\n" +
+              "<:note:1421910167775084646> Built-in cooldowns prevent spam\n" +
+              "<:note:1421910167775084646> Bulk requests supported (1-10 items)",
             inline: false,
           },
           {
-            name: "<:questionsign:1421912836103475250> Need Help?",
-            value: "• Use `/about` for bot information\n• Join our support server for assistance\n• Check command descriptions for usage tips",
+            name: "<:questionsign:1421912836103475250> Support & Help",
+            value: 
+              "`/help commands:true` → Detailed command list\n" +
+              "`/about` → Bot information and links\n" +
+              "Join our support server for assistance",
             inline: false,
           },
         ],
         footer: {
-          text: "Type /help commands:true to see detailed command information"
+          text: "Type /help commands:true to see all available commands"
         }
       };
 
