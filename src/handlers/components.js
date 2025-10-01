@@ -82,6 +82,24 @@ function buildIntervalStage() {
   };
 }
 
+function createInviteButton(botUserId) {
+  const inviteUrl = `https://discord.com/api/oauth2/authorize?client_id=${botUserId}&permissions=8&scope=bot%20applications.commands`;
+
+  return [
+    {
+      type: 1,
+      components: [
+        {
+          type: 2,
+          style: 5,
+          label: "invite me",
+          url: inviteUrl
+        }
+      ]
+    }
+  ];
+}
+
 export async function handleComponentInteraction(i) {
   try {
     if (i.type !== Constants.InteractionTypes.MESSAGE_COMPONENT) return;
@@ -216,3 +234,5 @@ export async function handleComponentInteraction(i) {
     console.error('cant handle component interaction:', error);
   }
 }
+
+export { createInviteButton };
