@@ -100,6 +100,24 @@ function createInviteButton(botUserId) {
   ];
 }
 
+function createVoteButton() {
+  const voteUrl = 'https://top.gg/bot/1421884850507354123/vote';
+
+  return [
+    {
+      type: 1,
+      components: [
+        {
+          type: 2,
+          style: 5,
+          label: "Vote for me",
+          url: voteUrl
+        }
+      ]
+    }
+  ];
+}
+
 export async function handleComponentInteraction(i) {
   try {
     if (i.type !== Constants.InteractionTypes.MESSAGE_COMPONENT) return;
@@ -235,4 +253,4 @@ export async function handleComponentInteraction(i) {
   }
 }
 
-export { createInviteButton };
+export { createInviteButton, createVoteButton };
