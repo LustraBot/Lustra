@@ -54,6 +54,11 @@ client.on('ready', async () => {
         updateTopGGStats();
         setInterval(updateTopGGStats, 1800000);
     }
+
+    setTimeout(() => {
+        updateStatus();
+        setInterval(updateStatus, 300000);
+    }, 2000);
 });
 
 async function sendWelcomeMessage(member) {
@@ -244,6 +249,27 @@ async function updateTopGGStats() {
 }
 
 let currentStatus = 0;
+
+async function updateStatus() {
+    try {
+        const serverCount = client.guilds.size;
+        const memberCount = client.guilds.reduce((total, guild) => total + guild.memberCount, 0);
+
+        const statuses = [
+            `/help | ${serverCount} servers`,
+            `/about | ${memberCount} members`
+        ];
+
+        client.editStatus('online', {
+            name: statuses[currentStatus],
+            type: 0
+        });
+
+        currentStatus = (currentStatus + 1) % statuses.length;
+    } catch (error) {
+        console.error('Error updating status:', error.message);
+    }
+}
 
 client.on('error', async (error) => {
     console.error('[Client] Error event:', error);
