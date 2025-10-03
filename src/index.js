@@ -54,11 +54,6 @@ client.on('ready', async () => {
         updateTopGGStats();
         setInterval(updateTopGGStats, 1800000);
     }
-
-    setTimeout(() => {
-        updateStatus();
-        setInterval(updateStatus, 300000);
-    }, 2000);
 });
 
 async function sendWelcomeMessage(member) {
@@ -249,70 +244,6 @@ async function updateTopGGStats() {
 }
 
 let currentStatus = 0;
-
-async function updateStatus() {
-    try {
-        const serverCount = client.guilds.size;
-        const memberCount = client.guilds.reduce((total, guild) => total + guild.memberCount, 0);
-
-        const statuses = [
-            `/help | ${serverCount} servers`,
-            `/about | ${memberCount} members`
-        ];
-
-        client.editStatus('online', {
-            name: statuses[currentStatus],
-            type: 0
-        });
-
-        currentStatus = (currentStatus + 1) % statuses.length;
-
-        await logStatsToChannel(serverCount, memberCount);
-    } catch (error) {
-        console.error('Error updating status:', error.message);
-    }
-}
-async function logStatsToChannel(serverCount, memberCount) {
-    try {
-        const logChannelId = '1422584266440572928';
-        const logChannel = client.getChannel(logChannelId);
-
-        if (logChannel) {
-            const logEmbed = {
-                title: '<:info:1421910347564187799> Bot Statistics Update',
-                color: 0xcdb4db,
-                fields: [
-                    {
-                        name: '<:users:1421910719255023626> Total Members',
-                        value: `${memberCount.toLocaleString()}`,
-                        inline: true,
-                    },
-                    {
-                        name: '<:servers:1421910719255023626> Total Servers',
-                        value: `${serverCount.toLocaleString()}`,
-                        inline: true,
-                    },
-                    {
-                        name: '<:clock:1421910719255023626> Last Updated',
-                        value: `<t:${Math.floor(Date.now() / 1000)}:F>`,
-                        inline: false,
-                    },
-                ],
-                footer: {
-                    text: 'Stats auto-update every 5 minutes',
-                },
-                timestamp: new Date().toISOString(),
-            };
-
-            await logChannel.createMessage({ embeds: [logEmbed] });
-            console.info(`Logged stats to channel ${logChannelId}: ${memberCount} members, ${serverCount} servers`);
-        } else {
-            console.warn(`Log channel ${logChannelId} not found`);
-        }
-    } catch (error) {
-        console.error('Error logging stats to channel:', error.message);
-    }
-}
 
 client.on('error', async (error) => {
     console.error('[Client] Error event:', error);
