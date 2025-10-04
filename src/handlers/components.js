@@ -1,5 +1,12 @@
 import { Constants } from 'eris';
-import { upsertAutoHentaiConfig, disableAutoHentai, getAutoHentaiConfig } from '../db.js';
+import { 
+  upsertAutoHentaiConfig, 
+  disableAutoHentai, 
+  getAutoHentaiConfig, 
+  addRestrictedChannel, 
+  removeRestrictedChannel, 
+  getRestrictedChannels 
+} from '../db.js';
 import { rescheduleAutoHentai } from '../automation/hentaiAuto.js';
 
 const pending = new Map();
@@ -119,6 +126,275 @@ function createVoteButton() {
 }
 
 export async function handleComponentInteraction(i) {
+  if (i.data.component_type === 3 && i.data.custom_id === 'setup_menu') {
+    const [value] = i.data.values;
+    
+    if (value === 'restrictions') {
+      const channels = await getRestrictedChannels(i.guildID);
+      const { embed, components } = buildRestrictionMain(i.guildID, channels);
+      
+      await i.createMessage({
+        embeds: [embed],
+        components,
+        flags: 64
+      });
+      return;
+    }
+    
+    if (value === 'automation') {
+      const config = await getAutoHentaiConfig(i.guildID) || {};
+      const { embed, components } = buildAutomationMain(config);
+      
+      await i.createMessage({
+        embeds: [embed],
+        components,
+        flags: 64
+      });
+    }
+    return;
+  }
+  
+  if (i.data.component_type === 2 && i.data.custom_id?.startsWith('restrict_')) {
+    const action = i.data.custom_id.split('_')[1];
+    const channels = await getRestrictedChannels(i.guildID);
+    
+    if (action === 'back') {
+      const restrictedChannels = await getRestrictedChannels(i.guildID);
+      const restrictionStatus = restrictedChannels.length > 0 
+        ? `Enabled (${restrictedChannels.length} channel${restrictedChannels.length !== 1 ? 's' : ''} allowed)`
+        : 'Disabled (bot can post in any channel)';
+
+      const embed = {
+        color: 0xcdb4db,
+        title: "<:cogwheelsilhouette:1421912845922078900> Lustra Setup",
+        description: `Here you can setup Lustra features and configurations.\n\n**Channel Restrictions:** ${restrictionStatus}`,
+      };
+
+      const components = [
+        {
+          type: 1,
+          components: [
+            {
+              type: 3,
+              custom_id: "setup_menu",
+              placeholder: "Select an option",
+              options: [
+                {
+                  label: "Automation",
+                  value: "automation",
+                  description: "Configure automation features",
+                  emoji: {
+                    id: "1421912845922078900",
+                    name: "cogwheelsilhouette"
+                  },
+                },
+                {
+                  label: "Channel Restrictions",
+                  value: "restrictions",
+                  description: "Manage which channels the bot can post in",
+                  emoji: {
+                    id: "1421910719255023626",
+                    name: "tools"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ];
+
+      await i.createMessage({
+        embeds: [embed],
+        components,
+        flags: 64
+      });
+      return;
+    }
+    
+    if (action === 'add') {
+      const guild = i._client.guilds.get(i.guildID);
+      if (!guild) {
+        return i.createMessage({
+          content: 'Error: Guild not found',
+          flags: 64
+        });
+      }
+
+      const nsfwChannels = guild.channels.filter(channel =>
+        channel.type === 0 && channel.nsfw
+      );
+
+      if (nsfwChannels.size === 0) {
+        return i.createMessage({
+          content: 'No NSFW text channels found in this server. Please create an NSFW channel first.',
+          flags: 64
+        });
+      }
+
+      const channelArray = Array.from(nsfwChannels.values())
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      const chunks = [];
+      for (let i = 0; i < channelArray.length; i += 25) {
+        chunks.push(channelArray.slice(i, i + 25));
+      }
+
+      const components = [];
+
+      chunks.forEach((chunk, index) => {
+        const options = chunk.map(channel => ({
+          label: `#${channel.name}`,
+          value: channel.id,
+          description: `Add ${channel.name} to allowed channels`
+        }));
+
+        const totalPages = chunks.length;
+        const currentPage = index + 1;
+
+        components.push({
+          type: 1,
+          components: [
+            {
+              type: 3,
+              custom_id: `add_channel_select_${index}`,
+              placeholder: `Select an NSFW channel (${currentPage}/${totalPages})`,
+              options: options,
+              max_values: 1
+            }
+          ]
+        });
+      });
+
+      components.push({
+        type: 1,
+        components: [
+          {
+            type: 2,
+            style: 2,
+            label: 'Cancel',
+            custom_id: 'restrict_back',
+            emoji: { id: '1421961111187624007', name: 'bownarrow' }
+          }
+        ]
+      });
+
+      await i.createMessage({
+        content: `Found ${nsfwChannels.size} NSFW channel${nsfwChannels.size !== 1 ? 's' : ''}. Select one to allow hentai content:`,
+        components: components,
+        flags: 64
+      });
+      return;
+    }
+    
+    if (action === 'remove' && channels.length > 0) {
+      const channelOptions = channels.map(channelId => ({
+        label: `#${i.channel.guild.channels.get(channelId)?.name || channelId}`,
+        value: channelId,
+        description: `Remove ${i.channel.guild.channels.get(channelId)?.name || channelId} from allowed channels`,
+        emoji: { id: '1421910167775084646', name: 'note' }
+      }));
+      
+      await i.createMessage({
+        content: 'Select a channel to remove from allowed channels:',
+        components: [
+          {
+            type: 1,
+            components: [
+              {
+                type: 3,
+                custom_id: 'remove_channel',
+                placeholder: 'Select a channel to remove',
+                options: channelOptions
+              }
+            ]
+          }
+        ],
+        flags: 64
+      });
+      return;
+    }
+    
+    if (action === 'remove') {
+      await i.createMessage({
+        content: 'There are no channels to remove.',
+        flags: 64
+      });
+      return;
+    }
+  }
+  
+  if (i.data.component_type === 3 && i.data.custom_id?.startsWith('add_channel_select_')) {
+    await i.acknowledge();
+
+    const channelId = i.data.values?.[0];
+
+    if (!channelId) {
+      return i.createFollowup({
+        content: 'Error: No channel selected',
+        flags: 64
+      });
+    }
+
+    const guild = i._client.guilds.get(i.guildID);
+    const channel = guild?.channels.get(channelId);
+
+    if (!channel) {
+      return i.createFollowup({
+        content: 'Error: Channel not found',
+        flags: 64
+      });
+    }
+
+    if (!channel.nsfw) {
+      return i.createFollowup({
+        content: `<#${channelId}> is not an age-restricted channel. Hentai content can only be posted in NSFW channels.`,
+        flags: 64
+      });
+    }
+
+    try {
+      await addRestrictedChannel(i.guildID, channelId);
+      const channels = await getRestrictedChannels(i.guildID);
+      const { embed, components } = buildRestrictionMain(i.guildID, channels);
+
+      await i.editOriginalMessage({
+        content: `Added <#${channelId}> to allowed channels.`,
+        embeds: [embed],
+        components
+      });
+    } catch (error) {
+      console.error('Error adding channel:', error);
+      await i.editOriginalMessage({
+        content: 'Failed to add channel. Please try again.',
+        flags: 64
+      });
+    }
+    return;
+  }
+  
+  if (i.data.component_type === 3 && i.data.custom_id === 'remove_channel') {
+    const [channelId] = i.data.values;
+    
+    if (!channelId) {
+      return i.createMessage({
+        content: 'Error: No channel ID provided',
+        flags: 64
+      });
+    }
+    
+    await removeRestrictedChannel(i.guildID, channelId);
+    
+    const channels = await getRestrictedChannels(i.guildID);
+    const { embed, components } = buildRestrictionMain(i.guildID, channels);
+    
+    await i.createMessage({
+      content: `Removed <#${channelId}> from allowed channels.`,
+      embeds: [embed],
+      components,
+      flags: 64
+    });
+    return;
+  }
   try {
     if (i.type !== Constants.InteractionTypes.MESSAGE_COMPONENT) return;
 
@@ -251,6 +527,48 @@ export async function handleComponentInteraction(i) {
   } catch (error) {
     console.error('cant handle component interaction:', error);
   }
+}
+
+function buildRestrictionMain(guildId, channels = []) {
+  const channelList = channels.length > 0
+    ? channels.map(id => `• <#${id}>`).join('\n')
+    : 'No channels are currently allowed. The bot can post in any channel.';
+
+  return {
+    embed: {
+      color: 0xcdb4db,
+      title: '<:tools:1421910719255023626> Channel Restrictions',
+      description: `**Allowed Channels:**\n${channelList}\n\nUse the buttons below to manage channel restrictions.`,
+    },
+    components: [
+      {
+        type: 1,
+        components: [
+          { 
+            type: 2, 
+            style: 2, 
+            label: 'Add Channel', 
+            custom_id: 'restrict_add',
+            emoji: { id: '1421910347564187799', name: 'info' }
+          },
+          { 
+            type: 2, 
+            style: 2, 
+            label: 'Remove Channel', 
+            custom_id: 'restrict_remove',
+            emoji: { id: '1421910167775084646', name: 'note' }
+          },
+          { 
+            type: 2, 
+            style: 2, 
+            label: 'Back', 
+            custom_id: 'restrict_back',
+            emoji: { id: '1421961111187624007', name: 'bownarrow' }
+          }
+        ]
+      }
+    ]
+  };
 }
 
 export { createInviteButton, createVoteButton };

@@ -32,6 +32,8 @@ export async function getHentaiUrls(type, count = 1) {
   return urls;
 }
 
+import { isChannelRestricted, getRestrictedChannels } from '../db.js';
+
 export default {
   name: "hentai",
   description: "Hentai!",
@@ -56,6 +58,41 @@ export default {
     },
   ],
   execute: async (interaction) => {
+    const isRestricted = await isChannelRestricted(interaction.guildID, interaction.channel.id);
+    if (isRestricted) {
+      const allowedChannels = await getRestrictedChannels(interaction.guildID);
+
+      const suggestedChannelId = allowedChannels[0];
+      const suggestedChannel = interaction.guild?.channels.get(suggestedChannelId);
+
+      const embed = {
+        title: "Channel Not Allowed",
+        description: `This command cannot be used in this channel.\n\n**Allowed channels:**\n${allowedChannels.map(id => `<#${id}>`).join('\n')}`,
+        color: 0xcdb4db,
+      };
+
+      const components = [];
+      if (suggestedChannel) {
+        components.push({
+          type: 1,
+          components: [
+            {
+              type: 2,
+              style: 5,
+              label: "Go to correct channel",
+              url: `https://discord.com/channels/${interaction.guildID}/${suggestedChannelId}`
+            }
+          ]
+        });
+      }
+
+      return interaction.createMessage({
+        embeds: [embed],
+        components,
+        flags: 64
+      });
+    }
+    
     if (!interaction.channel?.nsfw) {
       const embed = {
         description:

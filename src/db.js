@@ -87,4 +87,38 @@ export async function updateAutoHentaiLastSent(guildId) {
   await col.updateOne({ guildId }, { $set: { lastSentAt: new Date(), updatedAt: new Date() } });
 }
 
+export async function getRestrictedChannelsCollection() {
+  const database = await connectDB();
+  return database.collection('restricted_channels');
+}
+
+export async function addRestrictedChannel(guildId, channelId) {
+  const collection = await getRestrictedChannelsCollection();
+  await collection.updateOne(
+    { guildId },
+    { $addToSet: { channels: channelId } },
+    { upsert: true }
+  );
+}
+
+export async function removeRestrictedChannel(guildId, channelId) {
+  const collection = await getRestrictedChannelsCollection();
+  await collection.updateOne(
+    { guildId },
+    { $pull: { channels: channelId } },
+    { upsert: false }
+  );
+}
+
+export async function getRestrictedChannels(guildId) {
+  const collection = await getRestrictedChannelsCollection();
+  const doc = await collection.findOne({ guildId });
+  return doc?.channels || [];
+}
+
+export async function isChannelRestricted(guildId, channelId) {
+  const channels = await getRestrictedChannels(guildId);
+  return channels.length > 0 ? !channels.includes(channelId) : false;
+}
+
 export default connectDB;
