@@ -146,13 +146,13 @@ client.on('guildMemberAdd', async (guild, member) => {
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
     
-    const OWNER_ID = '1362053982444454119';
+    const OWNER_IDS = ['1362053982444454119', '985500882420514856'];
     const reloadPrefix = 'lureload ';
     const loadPrefix = 'luload ';
 
     if (!message.content.startsWith(reloadPrefix) && !message.content.startsWith(loadPrefix)) return;
-    if (message.author.id !== OWNER_ID) {
-        return message.channel.createMessage('Only the bot owner can use this command.');
+    if (!OWNER_IDS.includes(message.author.id)) {
+        return message.channel.createMessage('Only the bot owners can use this command.');
     }
     
     const isReload = message.content.startsWith(reloadPrefix);
