@@ -29,10 +29,7 @@ export default {
       setTimeout(() => cooldowns.delete(userId), COOLDOWN_MS);
     }
 
-    const start = Date.now();
     await i.defer();
-    const latency = Date.now() - start;
-
     let dbPing = await pingDB();
     let dbPingText = dbPing !== null ? `\`\`${dbPing}\`\`ms` : 'Failed';
 
@@ -44,7 +41,7 @@ export default {
       fields: [
         {
           name: "<:cogwheelsilhouette:1421912845922078900> Bot Stats",
-          value: `• Latency: \`\`${latency}\`\`ms\n• API Latency: \`\`${Math.round(i._client.shards.get(0).latency)}\`\`ms\n• Database Ping: ${dbPingText}`,
+          value: `• API Latency: \`\`${Math.round(i._client.shards.get(0).latency)}\`\`ms\n• Database Ping: ${dbPingText}`,
           inline: false,
         },
         {
