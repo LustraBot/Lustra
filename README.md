@@ -3,7 +3,7 @@
   <h1>Lustra</h1>
   <p>Efficient Discord bot for quick content access</p>
 
-  ![Version](https://img.shields.io/badge/version-1.0.0-purple)
+  ![Version](https://img.shields.io/badge/version-1.1.0-purple)
   ![Node.js](https://img.shields.io/badge/node-%3E%3D16.0.0-green)
   ![License](https://img.shields.io/badge/license-Proprietary-red)
   ![Last Updated](https://img.shields.io/badge/last%20updated-2025-orange)
@@ -113,3 +113,4 @@ Contributions are welcome. Please ensure your code follows the project's coding 
 <div align="center">
   <p>Made with dedication for efficient content delivery</p>
 </div>
+
