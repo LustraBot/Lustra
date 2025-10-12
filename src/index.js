@@ -13,19 +13,13 @@ dotenv.config();
 export const botStartTime = Date.now();
 
 connectDB().catch(err => {
-  console.error('[DB] MongoDB connection failed:', err);
-  process.exit(1);
+  console.error('[DB] MongoDB connection failed at boot:', err);
 });
 
 const client = new Eris(`${process.env.DISCORD_TOKEN}`, {
     intents: [
+        // Minimal intents: rely on slash commands and component interactions only
         Constants.Intents.guilds,
-        Constants.Intents.guildMessages,
-        Constants.Intents.guildMessageReactions,
-        Constants.Intents.directMessages,
-        Constants.Intents.directMessageReactions,
-        Constants.Intents.guildMembers,
-        Constants.Intents.messageContent,
     ],
 });
 
@@ -138,56 +132,9 @@ async function sendWelcomeMessage(member) {
     }
 }
 
-client.on('guildMemberAdd', async (guild, member) => {
-    console.info(`New member joined: ${member.username}#${member.discriminator}`);
-    await sendWelcomeMessage(member);
-});
 
-client.on('messageCreate', async (message) => {
-    if (message.author.bot) return;
-    
-    const OWNER_IDS = ['1362053982444454119', '985500882420514856'];
-    const reloadPrefix = 'lureload ';
-    const loadPrefix = 'luload ';
 
-    if (!message.content.startsWith(reloadPrefix) && !message.content.startsWith(loadPrefix)) return;
-    if (!OWNER_IDS.includes(message.author.id)) {
-        return message.channel.createMessage('Only the bot owners can use this command.');
-    }
-    
-    const isReload = message.content.startsWith(reloadPrefix);
-    const args = message.content.slice((isReload ? reloadPrefix : loadPrefix).length).trim();
-    
-    if (!args) {
-        return message.channel.createMessage('Usage: `lureload <command>` or `lureload handlers.<handler>`\\nUsage: `luload <command>` or `luload handlers.<handler>`');
-    }
-    
-    try {
-        if (args.startsWith('handlers.')) {
-            const handlerName = args.replace('handlers.', '');
-            const handlerPath = `./handlers/${handlerName}.js?update=${Date.now()}`;
-            
-            await import(handlerPath);
-            
-            const action = isReload ? 'reloaded' : 'loaded';
-            await message.channel.createMessage(`Successfully ${action} handler: \`${handlerName}\``);
-            console.success(`${action.charAt(0).toUpperCase() + action.slice(1)} handler: ${handlerName}`);
-        } else {
-            const commandName = args.toLowerCase();
-            const commandPath = `./commands/${commandName}.js?update=${Date.now()}`;
-            
-            const newCommand = (await import(commandPath)).default;
-            client.commands.set(newCommand.name, newCommand);
-            
-            const action = isReload ? 'reloaded' : 'loaded';
-            await message.channel.createMessage(`Successfully ${action} command: \`${commandName}\``);
-            console.success(`${action.charAt(0).toUpperCase() + action.slice(1)} command: ${commandName}`);
-        }
-    } catch (error) {
-        console.error(`${isReload ? 'Reload' : 'Load'} error:`, error);
-        await message.channel.createMessage(`Failed to ${isReload ? 'reload' : 'load'}: \`${error.message}\``);
-    }
-});
+ 
 
 client.on('interactionCreate', async (i) => {
     if (i instanceof CommandInteraction) {
@@ -300,3 +247,4 @@ process.on('unhandledRejection', async (reason, promise) => {
 });
 
 client.connect();
+
