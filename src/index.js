@@ -24,6 +24,18 @@ const client = new Eris(`${process.env.DISCORD_TOKEN}`, {
 
 client.on('ready', async () => {
     console.info(`Logged in as ${client.user.username}#${client.user.discriminator}`);
+    const clearCmdCache = (process.env.CLEAR_COMMAND_CACHE || '').toLowerCase() === 'true';
+
+    if (clearCmdCache) {
+        try {
+            console.info('CLEAR_COMMAND_CACHE=true — clearing global application commands...');
+            await client.bulkEditCommands([]);
+            console.info('Global application commands cleared.');
+        } catch (err) {
+            console.error('Failed to clear global application commands:', err);
+        }
+    }
+
     console.info('Loading commands...');
     client.commands = new Collection();
     const commandFiles = fs.readdirSync('./src/commands').filter(file => file.endsWith('.js'));
@@ -31,14 +43,19 @@ client.on('ready', async () => {
         const command = (await import(`./commands/${file}`)).default;
         client.commands.set(command.name, command);
 
-        client.createCommand({
-            name: command.name,
-            description: command.description,
-            options: command.options ?? [],
-            type: Constants.ApplicationCommandTypes.CHAT_INPUT,
-        });
+        if (!clearCmdCache) {
+            client.createCommand({
+                name: command.name,
+                description: command.description,
+                options: command.options ?? [],
+                type: Constants.ApplicationCommandTypes.CHAT_INPUT,
+            });
+        }
     }
 
+    if (clearCmdCache) {
+        console.info('Command registration skipped due to CLEAR_COMMAND_CACHE=true');
+    }
     console.info('Commands loaded!');
 
     await initAutoHentai(client);
