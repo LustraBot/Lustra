@@ -18,7 +18,6 @@ connectDB().catch(err => {
 
 const client = new Eris(`${process.env.DISCORD_TOKEN}`, {
     intents: [
-        // Minimal intents: rely on slash commands and component interactions only
         Constants.Intents.guilds,
     ],
 });
