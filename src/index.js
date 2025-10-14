@@ -67,7 +67,7 @@ client.on('ready', async () => {
 
     setTimeout(() => {
         updateStatus();
-        setInterval(updateStatus, 300000);
+        setInterval(updateStatus, 6000);
     }, 2000);
 });
 
