@@ -19,6 +19,7 @@ connectDB().catch(err => {
 const client = new Eris(`${process.env.DISCORD_TOKEN}`, {
     intents: [
         Constants.Intents.guilds,
+        Constants.Intents.guildMessages,
     ],
 });
 
@@ -71,12 +72,127 @@ client.on('ready', async () => {
     }, 2000);
 });
 
+const mentionRegexCache = new Map();
+
+function stripEphemeralFlags(payload) {
+    if (!payload || typeof payload !== 'object') {
+        return payload;
+    }
+    const { flags, ...rest } = payload;
+    return rest;
+}
+
+function buildMessageProxyInteraction(message, commandName) {
+    const respond = async (data) => {
+        const payload = stripEphemeralFlags(data);
+        return message.channel.createMessage(payload);
+    };
+
+    return {
+        member: message.member ? { ...message.member, user: message.author } : null,
+        user: message.author,
+        author: message.author,
+        guildID: message.guildID,
+        channel: message.channel,
+        guild: message.channel.guild,
+        data: { name: commandName, options: [] },
+        defer: async () => {
+            if (typeof message.channel.sendTyping === 'function') {
+                try {
+                    await message.channel.sendTyping();
+                } catch (error) {
+                    console.error('[Mentions] Failed to send typing indicator:', error);
+                }
+            }
+        },
+        createMessage: respond,
+        createFollowup: respond,
+        _client: client,
+    };
+}
+
+client.on('messageCreate', async (message) => {
+    if (message.author?.bot) {
+        return;
+    }
+
+    const content = message.content || '';
+    if (!content.length) {
+        return;
+    }
+
+    let regex = mentionRegexCache.get(client.user.id);
+    if (!regex) {
+        regex = new RegExp(`^<@!?${client.user.id}>\\s*`, 'i');
+        mentionRegexCache.set(client.user.id, regex);
+    }
+
+    if (!regex.test(content)) {
+        return;
+    }
+
+    const remaining = content.replace(regex, '').trim();
+    if (!remaining.length) {
+        try {
+            await message.channel.createMessage({
+                content: "Hey, sorry to catch you like this, but we only support slash commands to avoid using message intents. Please use `/help` to see what's available!",
+            });
+        } catch (error) {
+            console.error('[Mentions] Failed to send mention response:', error);
+        }
+        return;
+    }
+
+    const [commandNameRaw] = remaining.split(/\s+/, 1);
+    const commandName = commandNameRaw?.toLowerCase();
+    if (!commandName) {
+        return;
+    }
+
+    const command = client.commands?.get(commandName);
+    if (!command) {
+        try {
+            await message.channel.createMessage({
+                content: "Hey, sorry to catch you like this, but we only support slash commands to avoid using message intents. Please use `/help` to see what's available!",
+            });
+        } catch (error) {
+            console.error('[Mentions] Failed to send mention response:', error);
+        }
+        return;
+    }
+
+    if (command.options?.length) {
+        try {
+            await message.channel.createMessage({
+                content: "That command needs options that only slash commands support. Please try using the `/` version instead!",
+            });
+        } catch (error) {
+            console.error('[Mentions] Failed to send slash-required response:', error);
+        }
+        return;
+    }
+
+    try {
+        const proxyInteraction = buildMessageProxyInteraction(message, commandName);
+        await command.execute(proxyInteraction);
+    } catch (error) {
+        console.error('[Mentions] Failed to proxy command execution:', error);
+        try {
+            await message.channel.createMessage({
+                content: "I couldn't run that command here. Please try the slash command instead.",
+            });
+        } catch (sendError) {
+            console.error('[Mentions] Failed to send fallback error response:', sendError);
+        }
+    }
+});
+
 async function sendWelcomeMessage(member) {
     const welcomeChannelId = "1421959685921050755";
     const verifyChannelId = "1421932309946568715";
     const updatesChannelId = "1421934523230195743";
     const githubChannelId = "1421934554846855401";
-    
+
     const welcomeChannel = member.guild.channels.get(welcomeChannelId);
     if (!welcomeChannel) {
         console.warn(`Welcome channel ${welcomeChannelId} not found in guild ${member.guild.id}`);

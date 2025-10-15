@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lustra • Top.gg Overview</title>
+  <style>
+    :root {
+      --accent: #cdb4db;
+      --accent-soft: rgba(205, 180, 219, 0.18);
+      --surface: #15111f;
+      --surface-soft: #1d172b;
+      --background: radial-gradient(circle at top, #1f1831 0%, #0f0c18 55%, #090711 100%);
+      --text: #f5f3fa;
+      --muted: #bfb6ce;
+      --muted-strong: #d6cee6;
+      --border: rgba(205, 180, 219, 0.28);
+      --shadow: 0 28px 90px rgba(9, 5, 19, 0.55);
+      font-family: "Inter", "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 64px 0;
+      min-height: 100vh;
+      background: var(--background);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .wrapper {
+      width: min(1080px, 92vw);
+      display: flex;
+      flex-direction: column;
+      gap: 44px;
+    }
+
+    .hero {
+      position: relative;
+      padding: 48px;
+      border-radius: 24px;
+      background: linear-gradient(140deg, rgba(205, 180, 219, 0.14), rgba(23, 17, 37, 0.94));
+      border: 1px solid rgba(205, 180, 219, 0.3);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      top: -60px;
+      right: -80px;
+      width: 360px;
+      height: 360px;
+      background: radial-gradient(circle, rgba(205, 180, 219, 0.55) 0%, rgba(205, 180, 219, 0) 70%);
+      opacity: 0.5;
+      filter: blur(4px);
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(2.5rem, 4vw, 3.4rem);
+      letter-spacing: 0.04em;
+    }
+
+    .hero p {
+      margin-top: 18px;
+      max-width: 620px;
+      line-height: 1.7;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .hero-badges {
+      margin-top: 32px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .badge {
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(205, 180, 219, 0.16);
+      border: 1px solid rgba(205, 180, 219, 0.35);
+      color: var(--muted-strong);
+      font-size: 0.85rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      margin: 0 0 22px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted-strong);
+    }
+
+    .grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    @media (min-width: 820px) {
+      .grid-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .grid-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .card {
+      background: linear-gradient(165deg, rgba(33, 25, 46, 0.92), rgba(17, 13, 25, 0.92));
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      padding: 28px;
+      box-shadow: 0 22px 70px rgba(9, 5, 19, 0.4);
+    }
+
+    .card h3 {
+      margin: 0 0 16px;
+      font-size: 1.2rem;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+    }
+
+    .card p, .card li {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .card ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .commands {
+      display: grid;
+      gap: 20px;
+    }
+
+    @media (min-width: 768px) {
+      .commands {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .command-card {
+      padding: 24px 26px;
+      border-radius: 18px;
+      background: rgba(23, 18, 34, 0.9);
+      border: 1px solid rgba(205, 180, 219, 0.26);
+      box-shadow: 0 14px 50px rgba(10, 7, 17, 0.4);
+    }
+
+    .command-card h4 {
+      margin: 0 0 12px;
+      font-size: 1.05rem;
+      color: var(--muted-strong);
+      letter-spacing: 0.03em;
+    }
+
+    .command-card code {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 8px;
+      background: rgba(205, 180, 219, 0.12);
+      border: 1px solid rgba(205, 180, 219, 0.24);
+      color: var(--accent);
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+    }
+
+    .command-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .steps {
+      counter-reset: step;
+      display: grid;
+      gap: 16px;
+    }
+
+    .step {
+      position: relative;
+      padding: 22px 22px 22px 60px;
+      border-radius: 18px;
+      background: rgba(21, 17, 31, 0.88);
+      border: 1px solid rgba(205, 180, 219, 0.2);
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .step::before {
+      counter-increment: step;
+      content: counter(step, decimal-leading-zero);
+      position: absolute;
+      left: 20px;
+      top: 22px;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      color: var(--text);
+      border-radius: 9px;
+      background: rgba(205, 180, 219, 0.25);
+      border: 1px solid rgba(205, 180, 219, 0.32);
+    }
+
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 28px;
+    }
+
+    .button {
+      padding: 14px 26px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(205, 180, 219, 0.36), rgba(81, 64, 96, 0.36));
+      border: 1px solid rgba(205, 180, 219, 0.5);
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 16px 50px rgba(205, 180, 219, 0.24);
+    }
+
+    .button.secondary {
+      background: rgba(205, 180, 219, 0.12);
+      border: 1px solid rgba(205, 180, 219, 0.32);
+      box-shadow: none;
+    }
+
+    .button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 22px 70px rgba(205, 180, 219, 0.3);
+    }
+
+    .note {
+      padding: 22px;
+      border-radius: 18px;
+      background: rgba(18, 14, 28, 0.9);
+      border: 1px solid rgba(205, 180, 219, 0.22);
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    @media (max-width: 660px) {
+      body {
+        padding: 36px 0;
+      }
+
+      .hero {
+        padding: 32px;
+      }
+
+      .hero-badges {
+        gap: 10px;
+      }
+
+      .badge {
+        font-size: 0.75rem;
+        padding: 8px 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrapper">
+    <header class="hero">
+      <h1>Lustra</h1>
+      <p>Lustra is a precision-built Discord companion that keeps your server supplied with curated, high-quality entertainment. It offers streamlined automation, consistent reliability, and an experience that feels native to modern Discord communities.</p>
+
+      <div class="hero-badges">
+        <span class="badge">Built with Eris</span>
+        <span class="badge">Slash Command Native</span>
+        <span class="badge">Low Overhead</span>
+        <span class="badge">Actively Maintained</span>
+      </div>
+    </header>
+
+    <section>
+      <h2>Highlights</h2>
+      <div class="grid grid-3">
+        <article class="card">
+          <h3>Lightning Responses</h3>
+          <p>Optimised handlers make sure every request returns quickly, even during peak hours. Lustra quietly keeps your channels moving without holding up conversations.</p>
+        </article>
+        <article class="card">
+          <h3>Smart Delivery</h3>
+          <p>Slash commands with thoughtful defaults mean users get what they want in a single tap. Responses stay tidy and informative, never overwhelming the timeline.</p>
+        </article>
+        <article class="card">
+          <h3>Hands-Off Reliability</h3>
+          <p>Automated monitoring, graceful error handling, and structured cooldowns keep everything humming without constant oversight from your moderation team.</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>Command Spotlight</h2>
+      <div class="commands">
+        <article class="command-card">
+          <code>/help</code>
+          <h4>Interactive Command Catalog</h4>
+          <p>Guides members through every available category, complete with descriptions and usage tips. It’s the first place new users should visit.</p>
+        </article>
+        <article class="command-card">
+          <code>/about</code>
+          <h4>Bot Overview</h4>
+          <p>Returns a concise summary card with the bot’s mission, development stack, version details, and handy shortcuts.</p>
+        </article>
+        <article class="command-card">
+          <code>/profile</code>
+          <h4>Personal Preferences</h4>
+          <p>Let members tailor responses to match their tastes. Saved preferences streamline future requests and reduce channel chatter.</p>
+        </article>
+        <article class="command-card">
+          <code>/setup</code>
+          <h4>Guided Configuration</h4>
+          <p>Wizard-style flow that walks server managers through permissions, recommended channels, and optional automations.</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>Why Communities Pick Lustra</h2>
+      <div class="grid grid-2">
+        <article class="card">
+          <h3>Minimal Touch, Maximum Value</h3>
+          <ul>
+            <li>Invite-and-go onboarding for new servers</li>
+            <li>Requires only core message and interaction permissions</li>
+            <li>Profiles keep member preferences tightly organised</li>
+            <li>Cool-downs prevent spam while keeping access fair</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Built to Blend In</h3>
+          <ul>
+            <li>Stylish embeds that match the bot’s palette</li>
+            <li>Replies stay concise, no walls of text</li>
+            <li>Status cycling keeps visibility high without noise</li>
+            <li>Quiet background services handle routine maintenance</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>Setup In Minutes</h2>
+      <div class="steps">
+        <div class="step">Invite Lustra using the button below. Choose the server where you want automated content delivery.</div>
+        <div class="step">Confirm the bot can send messages, embed links, and use application commands in the channels you prefer.</div>
+        <div class="step">Run <strong>/help</strong> for a guided walkthrough of every feature, or jump straight to <strong>/setup</strong> for a quick configuration.</div>
+        <div class="step">Lean back and let Lustra handle the rest. Optional automation packs are available if you want scheduled drops.</div>
+      </div>
+
+      <div class="cta-row">
+        <a href="https://top.gg/bot/1421884850507354123" class="button">Invite Lustra</a>
+        <a href="https://github.com/LustraBot/Lustra" class="button secondary">Explore GitHub</a>
+      </div>
+    </section>
+
+    <section>
+      <h2>Support & Updates</h2>
+      <div class="grid grid-2">
+        <article class="card">
+          <h3>Help When You Need It</h3>
+          <p>Built-in guidance via <strong>/help</strong> covers every command with example usage. For deeper dives, our documentation and support hub stay up to date with the latest tips.</p>
+        </article>
+        <article class="card">
+          <h3>Actively Developed</h3>
+          <p>Version tracking, release notes, and feature roadmaps are published openly. Join the support server to share feedback, request new automations, or follow development progress.</p>
+        </article>
+      </div>
+    </section>
+
+    <footer class="note">
+      Lustra is tailored for servers that prioritise curated experiences. Please ensure your community follows Discord’s Terms of Service and Community Guidelines when using automated content delivery.
+    </footer>
+  </main>
+</body>
+</html>
