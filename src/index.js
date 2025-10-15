@@ -136,7 +136,7 @@ client.on('messageCreate', async (message) => {
     if (!remaining.length) {
         try {
             await message.channel.createMessage({
-                content: "Hey, sorry to catch you like this, but we only support slash commands to avoid using message intents. Please use `/help` to see what's available!",
+                content: "Hey! Thanks for using Lustra, we don't have a set prefix so we only use slash commands or @Lustra <query>. For any support run /about and join our support server.",
             });
         } catch (error) {
             console.error('[Mentions] Failed to send mention response:', error);
@@ -154,7 +154,7 @@ client.on('messageCreate', async (message) => {
     if (!command) {
         try {
             await message.channel.createMessage({
-                content: "Hey, sorry to catch you like this, but we only support slash commands to avoid using message intents. Please use `/help` to see what's available!",
+                content: "Hey! Thanks for using Lustra, we don't have a set prefix so we only use slash commands or @Lustra <query>. For any support run /about and join our support server.",
             });
         } catch (error) {
             console.error('[Mentions] Failed to send mention response:', error);
