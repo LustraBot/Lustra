@@ -7,6 +7,7 @@ import { connectDB } from './db.js';
 import { initAutoHentai } from './automation/hentaiAuto.js';
 import { handleComponentInteraction } from './handlers/components.js';
 import { sendErrorToChannel } from './handlers/errors.js';
+import { trackCommandUsage } from './handlers/profile.js';
 
 dotenv.config();
 
@@ -175,6 +176,7 @@ client.on('messageCreate', async (message) => {
     try {
         const proxyInteraction = buildMessageProxyInteraction(message, commandName);
         await command.execute(proxyInteraction);
+        await trackCommandUsage(proxyInteraction);
     } catch (error) {
         console.error('[Mentions] Failed to proxy command execution:', error);
         try {
@@ -274,6 +276,7 @@ client.on('interactionCreate', async (i) => {
 
         try {
             await client.commands.get(i.data.name).execute(i);
+            await trackCommandUsage(i);
         } catch (error) {
             console.error(error);
             await sendErrorToChannel(client, error, {

@@ -8,6 +8,7 @@ import {
   getRestrictedChannels 
 } from '../db.js';
 import { rescheduleAutoHentai } from '../automation/hentaiAuto.js';
+import { handleProfileComponent } from './profile.js';
 
 const pending = new Map();
 
@@ -126,6 +127,10 @@ function createVoteButton() {
 }
 
 export async function handleComponentInteraction(i) {
+  if (await handleProfileComponent(i)) {
+    return;
+  }
+
   if (i.data.component_type === 3 && i.data.custom_id === 'setup_menu') {
     const [value] = i.data.values;
     
