@@ -46,7 +46,7 @@ export default {
             type: 2,
             style: 5,
             label: "Support Server",
-            url: "https://discord.gg/W7MttaRT"
+            url: "https://discord.gg/qYtyCevmuw"
           },
           {
             type: 2,

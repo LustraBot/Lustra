@@ -127,6 +127,33 @@ function createVoteButton() {
 }
 
 export async function handleComponentInteraction(i) {
+  if (i.data.component_type === 2 && i.data.custom_id === 'donate_crypto') {
+    const cryptoEmbed = {
+      title: 'Donate via Cryptocurrency',
+      description: 'Thank you for considering a crypto donation! Your support helps keep Lustra running.\n\n' +
+                   '**Bitcoin (BTC):**\n`bc1q4k9h2exmlg30cq640p2m4rlsg8nmrgtrgfrzrn`\n\n' +
+                   '**Ethereum (ETH):**\n`0x3fDd707B9e0DdDA95c8Fe3CF04CDC4C537EA54A8`\n\n' +
+                   '**Solana (SOL):**\n`2gt9DqNq6YQMugKuQEi6DySTQXVQVvJsyv9BdEs6Vij7`\n\n' +
+                   'If you\'d like to donate with another crypto method, join our support server.',
+      color: 0xcdb4db,
+      type: 'rich',
+    };
+
+    const supportServerButton = {
+      type: 1,
+      components: [
+        {
+          type: 2,
+          style: 5,
+          label: 'Join Support Server',
+          url: 'https://discord.gg/qYtyCevmuw',
+        },
+      ],
+    };
+    await i.createMessage({ embeds: [cryptoEmbed], components: [supportServerButton], flags: 64 });
+    return;
+  }
+
   if (await handleProfileComponent(i)) {
     return;
   }
