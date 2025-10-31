@@ -196,11 +196,43 @@ export default {
         });
       }
 
-      await interaction.createMessage({ embeds: chunks[0] });
+      const hasMultipleBatches = chunks.length > 1;
 
-      for (let i = 1; i < chunks.length; i++) {
+      if (!hasMultipleBatches) {
+        await interaction.createMessage({
+          embeds: chunks[0],
+          components: [{
+            type: 1,
+            components: [{
+              type: 2,
+              style: 5,
+              label: "Vote for Lustra!",
+              url: "https://top.gg/bot/1421884850507354123/vote"
+            }]
+          }]
+        });
+      } else {
+        await interaction.createMessage({ embeds: chunks[0] });
+
+        for (let i = 1; i < chunks.length - 1; i++) {
+          await new Promise((r) => setTimeout(r, 2000));
+          await interaction.createFollowup({ embeds: chunks[i] });
+        }
+
+        const lastIndex = chunks.length - 1;
         await new Promise((r) => setTimeout(r, 2000));
-        await interaction.createFollowup({ embeds: chunks[i] });
+        await interaction.createFollowup({
+          embeds: chunks[lastIndex],
+          components: [{
+            type: 1,
+            components: [{
+              type: 2,
+              style: 5,
+              label: "Vote for Lustra!",
+              url: "https://top.gg/bot/1421884850507354123/vote"
+            }]
+          }]
+        });
       }
     } catch (err) {
       console.error("hentai cmd error:", err);
