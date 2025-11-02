@@ -11,7 +11,39 @@ import { trackCommandUsage } from './handlers/profile.js';
 
 dotenv.config();
 
+// Validate Discord token format
+function validateDiscordToken(token) {
+    if (!token) {
+        console.error('[Client] Discord token not found in environment variables');
+        return false;
+    }
+    
+    // Discord bot tokens should be around 70 characters and contain exactly one dot
+    if (token.length < 50 || token.length > 80) {
+        console.warn('[Client] Discord token length seems unusual:', token.length, 'characters');
+    }
+    
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+        console.error('[Client] Discord token format appears invalid (should have 3 parts)');
+        return false;
+    }
+    
+    return true;
+}
+
+if (!validateDiscordToken(process.env.DISCORD_TOKEN)) {
+    console.error('[Client] Invalid Discord token configuration');
+    process.exit(1);
+}
+
 export const botStartTime = Date.now();
+
+// Add connection monitoring
+let connectionHealthCheck = null;
+let lastHeartbeat = Date.now();
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
 
 connectDB().catch(err => {
   console.error('[DB] MongoDB connection failed at boot:', err);
@@ -22,11 +54,22 @@ const client = new Eris(`${process.env.DISCORD_TOKEN}`, {
         Constants.Intents.guilds,
         Constants.Intents.guildMessages,
     ],
+    // Add connection configuration for better stability
+    autoreconnect: true,
+    maxReconnectAttempts: 10,
+    reconnectInterval: 5000, // 5 seconds
+    defaultImageFormat: 'png',
+    defaultImageSize: 256,
 });
 
 client.on('ready', async () => {
     console.info(`Logged in as ${client.user.username}#${client.user.discriminator}`);
     const clearCmdCache = (process.env.CLEAR_COMMAND_CACHE || '').toLowerCase() === 'true';
+    
+    // Reset reconnection attempts on successful connection
+    reconnectAttempts = 0;
+    lastHeartbeat = Date.now();
+    console.info('[Client] Connection established, resetting health check counters');
 
     if (clearCmdCache) {
         try {
@@ -361,6 +404,105 @@ client.on('error', async (error) => {
     });
 });
 
+client.on('disconnect', (error) => {
+    console.warn('[Client] Disconnected from Discord gateway. Error:', error);
+    
+    // Check for specific error codes
+    if (error && error.code) {
+        switch (error.code) {
+            case 1000:
+                console.info('[Client] Normal WebSocket closure, will reconnect automatically');
+                break;
+            case 4004:
+                console.error('[Client] Authentication failed - token is invalid');
+                console.error('[Client] Please check your DISCORD_TOKEN environment variable');
+                process.exit(1);
+                break;
+            case 4010:
+                console.error('[Client] Invalid shard data provided');
+                break;
+            case 4011:
+                console.error('[Client] Shard would be on too many guilds');
+                break;
+            case 4012:
+                console.error('[Client] Invalid gateway version');
+                break;
+            case 4013:
+                console.error('[Client] Invalid intents specified');
+                break;
+            case 4014:
+                console.error('[Client] Shard was disallowed from connecting (intents issue)');
+                break;
+            default:
+                console.warn(`[Client] Unknown WebSocket error code: ${error.code}`);
+        }
+    }
+    
+    // Attempt to reconnect automatically
+    if (error && error.code !== 1000) { // 1000 is normal closure
+        console.info('[Client] Attempting to reconnect...');
+        setTimeout(() => {
+            try {
+                client.connect();
+            } catch (reconnectError) {
+                console.error('[Client] Failed to reconnect:', reconnectError);
+            }
+        }, 5000);
+    }
+});
+
+client.on('shardDisconnect', (id, err) => {
+    console.warn(`[Client] Shard ${id} disconnected:`, err);
+    
+    // Log shard-specific disconnection
+    if (err && err.code !== 1000) {
+        console.info(`[Client] Shard ${id} attempting to reconnect...`);
+        setTimeout(() => {
+            try {
+                client.shards.get(id)?.connect();
+            } catch (reconnectError) {
+                console.error(`[Client] Failed to reconnect shard ${id}:`, reconnectError);
+            }
+        }, 3000);
+    }
+});
+
+client.on('shardError', (error, shardID) => {
+    console.error(`[Client] Shard ${shardID} error:`, error);
+    
+    // Log the error but don't await since this isn't an async handler
+    sendErrorToChannel(client, error, {
+        description: `A shard error occurred on shard ${shardID}.`,
+        source: 'Discord Shard',
+        shardId: shardID.toString(),
+    }).catch(err => {
+        console.error('[Client] Failed to send shard error to channel:', err);
+    });
+});
+
+client.on('shardReady', (shardID) => {
+    console.info(`[Client] Shard ${shardID} ready`);
+});
+
+client.on('shardResumed', (shardID) => {
+    console.info(`[Client] Shard ${shardID} resumed connection`);
+});
+
+// Add heartbeat tracking
+client.on('shardPreReady', (shardID) => {
+    console.info(`[Client] Shard ${shardID} pre-ready, heartbeat tracking active`);
+});
+
+client.on('voiceServerUpdate', () => {
+    // Update heartbeat on any gateway activity
+    lastHeartbeat = Date.now();
+});
+
+client.on('guildSync', () => {
+    // Update heartbeat on any gateway activity
+    lastHeartbeat = Date.now();
+});
+
 process.on('uncaughtException', async (error) => {
     console.error('[Process] Uncaught Exception:', error);
     if (client.ready) {
@@ -381,5 +523,70 @@ process.on('unhandledRejection', async (reason, promise) => {
     }
 });
 
+// Add process exit handlers for graceful shutdown
+process.on('SIGINT', () => {
+    console.info('[Process] Received SIGINT, shutting down gracefully...');
+    if (connectionHealthCheck) {
+        clearInterval(connectionHealthCheck);
+    }
+    client.disconnect();
+    process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+    console.info('[Process] Received SIGTERM, shutting down gracefully...');
+    if (connectionHealthCheck) {
+        clearInterval(connectionHealthCheck);
+    }
+    client.disconnect();
+    process.exit(0);
+});
+
+// Add emergency connection recovery
+setInterval(() => {
+    if (!client.ready && reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+        console.warn('[Client] Bot not ready, attempting emergency recovery...');
+        try {
+            client.connect();
+            reconnectAttempts++;
+        } catch (error) {
+            console.error('[Client] Emergency recovery failed:', error);
+        }
+    }
+}, 60000); // Check every minute
+
 client.connect();
+
+// Add connection health monitoring
+function startConnectionHealthCheck() {
+    // Check connection health every 30 seconds
+    connectionHealthCheck = setInterval(() => {
+        const now = Date.now();
+        const timeSinceLastHeartbeat = now - lastHeartbeat;
+        
+        // If we haven't received a heartbeat in 90 seconds, we might be disconnected
+        if (timeSinceLastHeartbeat > 90000 && reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+            console.warn('[Client] No heartbeat received for 90 seconds. Attempting reconnection...');
+            
+            try {
+                // Check if still connected
+                if (!client.shards?.get(0)?.connected) {
+                    console.info('[Client] Connection appears dead. Attempting to reconnect...');
+                    client.connect();
+                    reconnectAttempts++;
+                    
+                    if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+                        console.error('[Client] Maximum reconnection attempts reached. Manual intervention required.');
+                        clearInterval(connectionHealthCheck);
+                    }
+                }
+            } catch (error) {
+                console.error('[Client] Health check reconnection failed:', error);
+            }
+        }
+    }, 30000);
+}
+
+// Start health check after initial connection
+setTimeout(startConnectionHealthCheck, 10000);
 
